@@ -33,6 +33,12 @@ import AttendanceAnalyticsPage from './features/attendance/pages/AttendanceAnaly
 import TimetableBuilderPage from './features/timetable/pages/TimetableBuilderPage'
 import ClassTimetablePage from './features/timetable/pages/ClassTimetablePage'
 import TeacherTimetablePage from './features/timetable/pages/TeacherTimetablePage'
+import TeacherAssignmentListPage from './features/assignments/pages/TeacherAssignmentListPage'
+import AssignmentFormPage from './features/assignments/pages/AssignmentFormPage'
+import GradingViewPage from './features/assignments/pages/GradingViewPage'
+import StudentAssignmentListPage from './features/assignments/pages/StudentAssignmentListPage'
+import SubmitAssignmentPage from './features/assignments/pages/SubmitAssignmentPage'
+import ParentChildAssignmentsPage from './features/assignments/pages/ParentChildAssignmentsPage'
 import './index.css'
 
 function App() {
@@ -119,6 +125,25 @@ function App() {
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
               <Route path="/timetable/class/:classId" element={<ClassTimetablePage />} />
               <Route path="/timetable/teacher/:teacherId" element={<TeacherTimetablePage />} />
+            </Route>
+
+            {/* Assignments — Teacher/Admin */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher']} />}>
+              <Route path="/assignments" element={<TeacherAssignmentListPage />} />
+              <Route path="/assignments/new" element={<AssignmentFormPage />} />
+              <Route path="/assignments/:id/edit" element={<AssignmentFormPage />} />
+              <Route path="/assignments/:id/submissions" element={<GradingViewPage />} />
+            </Route>
+
+            {/* Assignments — Student */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'student']} />}>
+              <Route path="/my-assignments" element={<StudentAssignmentListPage />} />
+              <Route path="/assignments/:id/submit" element={<SubmitAssignmentPage />} />
+            </Route>
+
+            {/* Assignments — Parent */}
+            <Route element={<RequireRole roles={['parent']} />}>
+              <Route path="/child/:childId/assignments" element={<ParentChildAssignmentsPage />} />
             </Route>
           </Route>
 
