@@ -13,6 +13,10 @@ import ForbiddenPage from './features/auth/pages/ForbiddenPage'
 import SchoolSettingsPage from './features/school-settings/pages/SchoolSettingsPage'
 import AcademicYearsPage from './features/school-settings/pages/AcademicYearsPage'
 import SchoolsListPage from './features/school-settings/pages/SchoolsListPage'
+import StudentListPage from './features/students/pages/StudentListPage'
+import StudentFormPage from './features/students/pages/StudentFormPage'
+import Student360Page from './features/students/pages/Student360Page'
+import MyChildrenPage from './features/students/pages/MyChildrenPage'
 import './index.css'
 
 function App() {
@@ -41,6 +45,20 @@ function App() {
             {/* Super admin — all schools management */}
             <Route element={<RequireRole roles={['super_admin']} />}>
               <Route path="/admin/schools" element={<SchoolsListPage />} />
+            </Route>
+
+            {/* Student management — school_admin, principal, teacher, parent */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'parent']} />}>
+              <Route path="/students" element={<StudentListPage />} />
+              <Route path="/students/new" element={<StudentFormPage />} />
+              <Route path="/students/:id" element={<Student360Page />} />
+              <Route path="/students/:id/edit" element={<StudentFormPage />} />
+              <Route path="/students/:id/360" element={<Student360Page />} />
+            </Route>
+
+            {/* Parent — my children */}
+            <Route element={<RequireRole roles={['parent']} />}>
+              <Route path="/my-children" element={<MyChildrenPage />} />
             </Route>
           </Route>
 
