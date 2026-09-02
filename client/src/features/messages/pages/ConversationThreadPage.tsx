@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../../../services/api'
 import { getSocket } from '../services/socket'
+import FileUploader from '../../documents/components/FileUploader'
 
 interface Sender {
   _id: string
@@ -38,8 +39,7 @@ export default function ConversationThreadPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [content, setContent] = useState('')
-  const [attachmentUrl, setAttachmentUrl] = useState('')
-  const [attachmentFilename, setAttachmentFilename] = useState('')
+  const [pendingAttachments, setPendingAttachments] = useState<MessageAttachment[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const currentUserIdRef = useRef<string>('')
 
@@ -124,26 +124,33 @@ export default function ConversationThreadPage() {
     }
   }, [id])
 
+  const handleAttachmentUploaded = (doc: { _id: string; filename: string; url: string }) => {
+    setPendingAttachments(prev => [...prev, {
+      url: doc.url,
+      filename: doc.filename,
+      mimeType: 'application/octet-stream',
+    }])
+  }
+
+  const removePendingAttachment = (idx: number) => {
+    setPendingAttachments(prev => prev.filter((_, i) => i !== idx))
+  }
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    if ((!content.trim() && !attachmentUrl.trim()) || !id) return
+    if ((!content.trim() && pendingAttachments.length === 0) || !id) return
 
     setSending(true)
     try {
       const payload: { content?: string; attachments?: MessageAttachment[] } = {}
       if (content.trim()) payload.content = content.trim()
-      if (attachmentUrl.trim()) {
-        payload.attachments = [{
-          url: attachmentUrl.trim(),
-          filename: attachmentFilename.trim() || 'attachment',
-          mimeType: 'application/octet-stream',
-        }]
+      if (pendingAttachments.length > 0) {
+        payload.attachments = pendingAttachments
       }
 
       await api.post(`/messages/conversations/${id}/messages`, payload)
       setContent('')
-      setAttachmentUrl('')
-      setAttachmentFilename('')
+      setPendingAttachments([])
       await loadMessages()
     } catch (err) {
       console.error('Failed to send message:', err)
@@ -212,6 +219,16 @@ export default function ConversationThreadPage() {
 
       {/* Composer */}
       <form onSubmit={handleSend} className="bg-white rounded-b-xl shadow-sm p-4 border-t">
+        {pendingAttachments.length > 0 && (
+          <div className="mb-2 space-y-1">
+            {pendingAttachments.map((att, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs text-secondary-600">
+                <span>📎 {att.filename}</span>
+                <button type="button" onClick={() => removePendingAttachment(i)} className="text-red-500 hover:underline">Remove</button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2 mb-2">
           <input
             type="text"
@@ -223,28 +240,19 @@ export default function ConversationThreadPage() {
           />
           <button
             type="submit"
-            disabled={sending || (!content.trim() && !attachmentUrl.trim())}
+            disabled={sending || (!content.trim() && pendingAttachments.length === 0)}
             className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
           >
             {sending ? '...' : 'Send'}
           </button>
         </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={attachmentUrl}
-            onChange={(e) => setAttachmentUrl(e.target.value)}
-            placeholder="Attachment URL (optional)"
-            className="flex-1 rounded-lg border border-secondary-300 px-3 py-1.5 text-xs"
-          />
-          <input
-            type="text"
-            value={attachmentFilename}
-            onChange={(e) => setAttachmentFilename(e.target.value)}
-            placeholder="Filename"
-            className="w-32 rounded-lg border border-secondary-300 px-3 py-1.5 text-xs"
-          />
-        </div>
+        <FileUploader
+          ownerType="message"
+          ownerId={id || ''}
+          type="attachment"
+          onUploadComplete={handleAttachmentUploaded}
+          className="mt-1"
+        />
       </form>
     </div>
   )

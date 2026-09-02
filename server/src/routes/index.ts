@@ -18,6 +18,7 @@ import notificationRoutes from '../modules/notifications/routes/notificationRout
 import leaveRoutes from '../modules/leave/routes/leaveRoutes.js'
 import disciplineRoutes from '../modules/discipline/routes/disciplineRoutes.js'
 import transportRoutes from '../modules/transport/routes/transportRoutes.js'
+import documentRoutes from '../modules/documents/routes/documentRoutes.js'
 
 const router = Router()
 
@@ -40,5 +41,6 @@ router.use('/notifications', notificationRoutes)
 router.use('/leave', leaveRoutes)
 router.use('/discipline', disciplineRoutes)
 router.use('/transport', transportRoutes)
+router.use('/documents', documentRoutes)
 
 export default router
