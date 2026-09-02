@@ -11,8 +11,18 @@ import {
 } from '../schemas/attendanceSchemas.js'
 import * as attendanceService from '../services/attendanceService.js'
 import mongoose from 'mongoose'
+import { Attendance } from '../models/Attendance.js'
+import { exportData, type ExportFormat } from '../../../shared/importExport/spreadsheet.js'
 
 const router = Router()
+
+router.get('/export', authenticate, resolveTenant, requirePermission('attendance:read'), async (req: Request, res: Response) => {
+  const format = String(req.query.format || 'csv') as ExportFormat
+  if (!['csv', 'xlsx', 'pdf'].includes(format)) { res.status(400).json({ error: 'format must be csv, xlsx, or pdf' }); return }
+  const records = await Attendance.find({ schoolId: req.tenantId! }).populate('studentId', 'admissionNo profile.firstName profile.lastName').populate('classId', 'grade section').lean()
+  const file = await exportData({ format, columns: [{ key: 'date', label: 'Date' }, { key: 'student', label: 'Student' }, { key: 'class', label: 'Class' }, { key: 'status', label: 'Status' }], rows: records.map((record) => ({ date: new Date(record.date).toISOString().slice(0, 10), student: `${(record.studentId as any)?.profile?.firstName ?? ''} ${(record.studentId as any)?.profile?.lastName ?? ''}`.trim(), class: `${(record.classId as any)?.grade ?? ''}-${(record.classId as any)?.section ?? ''}`, status: record.status })) })
+  res.type(file.contentType).attachment(`attendance.${file.extension}`).send(file.buffer)
+})
 
 // ── POST /attendance/mark — bulk mark a class ────────────────────────
 

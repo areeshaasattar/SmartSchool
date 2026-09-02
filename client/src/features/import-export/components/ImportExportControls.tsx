@@ -1,0 +1,19 @@
+import { useRef, useState } from 'react'
+import api from '../../../services/api'
+
+type Entity = 'students' | 'teachers'
+type Report = { validRows: number; invalidRows: Array<{ row: number; errors: string[] }>; duplicates: Array<{ row: number; value: string }>; token: string }
+
+const templates: Record<Entity, string> = {
+  students: 'admissionNo,firstName,lastName,dob,gender,emergencyContactName,emergencyContactRelation,emergencyContactPhone\nSTU-001,Ada,Lovelace,2008-12-10,female,Grace Lovelace,mother,555-0100\n',
+  teachers: 'employeeNo,firstName,lastName,email,designation,joiningDate,employmentType\nEMP-001,Alan,Turing,alan@example.com,Teacher,2024-08-01,full_time\n',
+}
+
+export default function ImportExportControls({ entity, onImported }: { entity: Entity; onImported: () => void }) {
+  const fileInput = useRef<HTMLInputElement>(null); const [report, setReport] = useState<Report | null>(null); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false)
+  const downloadTemplate = () => { const url = URL.createObjectURL(new Blob([templates[entity]], { type: 'text/csv' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `${entity}-template.csv`; anchor.click(); URL.revokeObjectURL(url) }
+  const validate = async (file?: File) => { if (!file) return; setBusy(true); setMessage(''); const body = new FormData(); body.append('file', file); try { setReport((await api.post(`/${entity}/import/validate`, body, { headers: { 'Content-Type': 'multipart/form-data' } })).data) } catch { setMessage('Unable to validate the file. Check the template and try again.') } finally { setBusy(false) } }
+  const confirm = async () => { if (!report) return; setBusy(true); try { const result = (await api.post(`/${entity}/import/confirm`, { token: report.token })).data; setMessage(`Imported ${result.imported}; skipped ${result.skipped}.`); setReport(null); onImported() } catch { setMessage('Import token expired or the import could not be completed.') } finally { setBusy(false) } }
+  const exportFile = async (format: 'csv' | 'xlsx' | 'pdf') => { try { const response = await api.get(`/${entity}/export`, { params: { format }, responseType: 'blob' }); const url = URL.createObjectURL(response.data); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `${entity}.${format}`; anchor.click(); URL.revokeObjectURL(url) } catch { setMessage('Unable to export data.') } }
+  return <div className="flex flex-wrap items-center gap-2"><input ref={fileInput} type="file" accept=".csv,.xlsx" className="hidden" onChange={(event) => validate(event.target.files?.[0])} /><button onClick={() => fileInput.current?.click()} disabled={busy} className="rounded-lg border border-secondary-300 px-3 py-2 text-sm font-medium text-secondary-700 hover:bg-secondary-50">{busy ? 'Working…' : 'Import CSV/XLSX'}</button><button onClick={downloadTemplate} className="text-sm text-primary-600 hover:underline">Template</button><select defaultValue="" onChange={(event) => { const format = event.target.value as 'csv' | 'xlsx' | 'pdf'; if (format) exportFile(format); event.target.value = '' }} className="rounded-lg border border-secondary-300 px-3 py-2 text-sm"><option value="">Export…</option><option value="csv">CSV</option><option value="xlsx">XLSX</option><option value="pdf">PDF</option></select>{report && <div className="w-full rounded-lg bg-primary-50 p-3 text-sm text-primary-900">{report.validRows} valid rows; {report.invalidRows.length} invalid; {report.duplicates.length} duplicates. <button onClick={confirm} disabled={busy || report.validRows === 0} className="ml-2 rounded bg-primary-600 px-3 py-1 text-white disabled:opacity-50">Confirm import</button>{report.invalidRows.slice(0, 3).map((item) => <p key={item.row} className="mt-1 text-xs">Row {item.row}: {item.errors.join(', ')}</p>)}</div>}{message && <p className="w-full text-sm text-secondary-600">{message}</p>}</div>
+}

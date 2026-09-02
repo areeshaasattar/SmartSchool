@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import type { RootState } from '../../../store'
 import api from '../../../services/api'
+import ImportExportControls from '../../import-export/components/ImportExportControls'
 
 interface Student {
   id: string
@@ -60,16 +61,16 @@ export default function StudentListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-secondary-900">Students</h2>
-        {canCreate && (
+        {canCreate && <div className="flex flex-wrap items-center gap-2"><ImportExportControls entity="students" onImported={loadStudents} />
           <Link
             to="/students/new"
             className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
           >
             + Add Student
           </Link>
-        )}
+        </div>}
       </div>
 
       {/* Filters */}
