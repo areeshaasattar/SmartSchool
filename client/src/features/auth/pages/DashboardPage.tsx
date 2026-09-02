@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import type { RootState } from '../../../store'
 import { clearUser } from '../../../store'
+import SchoolSwitcher from '../../../app/components/SchoolSwitcher'
 
 export default function DashboardPage() {
   const { user } = useSelector((state: RootState) => state.auth)
@@ -19,6 +20,7 @@ export default function DashboardPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <h1 className="text-xl font-bold text-primary-600">SmartSchool</h1>
           <div className="flex items-center gap-4">
+            <SchoolSwitcher />
             <span className="text-sm text-secondary-600">
               {user?.profile.firstName} {user?.profile.lastName}
             </span>

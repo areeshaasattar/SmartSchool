@@ -1,6 +1,27 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
-export type UserRole = 'super_admin' | 'principal' | 'vice_principal' | 'teacher' | 'student' | 'parent' | 'accountant' | 'librarian' | 'admin_staff'
+export type UserRole =
+  | 'super_admin'
+  | 'school_admin'
+  | 'principal'
+  | 'teacher'
+  | 'student'
+  | 'parent'
+  | 'accountant'
+  | 'hr'
+  | 'transport_manager'
+
+export const ALL_ROLES: UserRole[] = [
+  'super_admin',
+  'school_admin',
+  'principal',
+  'teacher',
+  'student',
+  'parent',
+  'accountant',
+  'hr',
+  'transport_manager',
+]
 
 export type UserStatus = 'pending_verification' | 'active' | 'disabled'
 
@@ -53,7 +74,7 @@ const userSchema = new Schema<IUser>(
     roles: [
       {
         type: String,
-        enum: ['super_admin', 'principal', 'vice_principal', 'teacher', 'student', 'parent', 'accountant', 'librarian', 'admin_staff'],
+        enum: ALL_ROLES,
         default: ['teacher'],
       },
     ],
