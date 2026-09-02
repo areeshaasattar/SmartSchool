@@ -94,12 +94,40 @@ const tenantSlice = createSlice({
 
 export const { switchSchool } = tenantSlice.actions
 
+// ── Parent portal slice ─────────────────────────────────────────────
+
+interface ParentPortalState {
+  selectedChildId: string | null
+}
+
+const parentPortalInitialState: ParentPortalState = {
+  selectedChildId: localStorage.getItem('selectedChildId') || null,
+}
+
+const parentPortalSlice = createSlice({
+  name: 'parentPortal',
+  initialState: parentPortalInitialState,
+  reducers: {
+    selectChild: (state, action: PayloadAction<string | null>) => {
+      state.selectedChildId = action.payload
+      if (action.payload) {
+        localStorage.setItem('selectedChildId', action.payload)
+      } else {
+        localStorage.removeItem('selectedChildId')
+      }
+    },
+  },
+})
+
+export const { selectChild } = parentPortalSlice.actions
+
 // ── Store ────────────────────────────────────────────────────────────
 
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
     tenant: tenantSlice.reducer,
+    parentPortal: parentPortalSlice.reducer,
   },
 })
 

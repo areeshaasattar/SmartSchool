@@ -11,6 +11,7 @@ import attendanceRoutes from '../modules/attendance/routes/attendanceRoutes.js'
 import timetableRoutes from '../modules/timetables/routes/timetableRoutes.js'
 import assignmentRoutes from '../modules/assignments/routes/assignmentRoutes.js'
 import examRoutes from '../modules/exams/routes/examRoutes.js'
+import parentPortalRoutes from '../modules/parent-portal/routes/portalRoutes.js'
 
 const router = Router()
 
@@ -26,5 +27,6 @@ router.use('/attendance', attendanceRoutes)
 router.use('/timetable', timetableRoutes)
 router.use('/assignments', assignmentRoutes)
 router.use('/exams', examRoutes)
+router.use('/parent-portal', parentPortalRoutes)
 
 export default router

@@ -7,6 +7,36 @@ import mongoose from 'mongoose'
 
 const router = Router()
 
+// ── GET /guardians/me/children — convenience alias ────────────────────
+
+router.get(
+  '/me/children',
+  authenticate,
+  resolveTenant,
+  requirePermission('student:read'),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.tenantId!
+      const userId = (req.user!._id as mongoose.Types.ObjectId).toString()
+
+      const students = await studentService.getGuardianChildren(userId, tenantId)
+
+      res.json({
+        children: students.map((s) => ({
+          id: (s._id as mongoose.Types.ObjectId).toString(),
+          admissionNo: s.admissionNo,
+          profile: s.profile,
+          status: s.status,
+          classId: s.classId,
+          sectionId: s.sectionId,
+        })),
+      })
+    } catch (error) {
+      throw error
+    }
+  },
+)
+
 // ── GET /guardians/:id/children — parent views their own children ────
 
 router.get(
