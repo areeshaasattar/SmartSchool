@@ -15,6 +15,8 @@ import parentPortalRoutes from '../modules/parent-portal/routes/portalRoutes.js'
 import financeRoutes from '../modules/finance/routes/financeRoutes.js'
 import messageRoutes from '../modules/communication/routes/messageRoutes.js'
 import notificationRoutes from '../modules/notifications/routes/notificationRoutes.js'
+import leaveRoutes from '../modules/leave/routes/leaveRoutes.js'
+import disciplineRoutes from '../modules/discipline/routes/disciplineRoutes.js'
 
 const router = Router()
 
@@ -34,5 +36,7 @@ router.use('/parent-portal', parentPortalRoutes)
 router.use('/fees', financeRoutes)
 router.use('/messages', messageRoutes)
 router.use('/notifications', notificationRoutes)
+router.use('/leave', leaveRoutes)
+router.use('/discipline', disciplineRoutes)
 
 export default router

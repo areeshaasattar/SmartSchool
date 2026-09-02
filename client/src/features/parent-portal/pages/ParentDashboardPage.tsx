@@ -224,11 +224,23 @@ export default function ParentDashboardPage() {
               className="text-xs text-primary-700 hover:underline mt-2 inline-block">View Messages →</Link>
           </div>
 
-          {/* Leave Card — Stub */}
-          <div className="rounded-xl bg-secondary-50 p-5 shadow-lg border-2 border-dashed border-secondary-200">
-            <h3 className="text-sm font-bold text-secondary-500 uppercase tracking-wide mb-2">📅 Leave</h3>
-            <p className="text-sm text-secondary-400">Coming soon</p>
-            <p className="text-xs text-secondary-300 mt-2">Leave requests will be available in a future update.</p>
+          {/* Leave Card */}
+          <div className="rounded-xl bg-white p-5 shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-secondary-900 uppercase tracking-wide">📅 Leave</h3>
+              {(dashboard.leave?.pending ?? 0) > 0 && (
+                <span className="rounded-full bg-yellow-500 text-white text-xs font-bold px-2 py-0.5">
+                  {dashboard.leave.pending} pending
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-secondary-500">
+              {(dashboard.leave?.pending ?? 0) > 0
+                ? `${dashboard.leave.pending} pending request(s)`
+                : 'No pending leave requests'}
+            </p>
+            <Link to="/leave"
+              className="text-xs text-primary-700 hover:underline mt-2 inline-block">Manage Leave →</Link>
           </div>
 
           {/* Announcements Card — Stub */}
