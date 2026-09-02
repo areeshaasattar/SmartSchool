@@ -44,6 +44,8 @@ import ExamListPage from './features/exams/pages/ExamListPage'
 import MarksEntryPage from './features/exams/pages/MarksEntryPage'
 import ResultsViewPage from './features/exams/pages/ResultsViewPage'
 import ReportCardPage from './features/exams/pages/ReportCardPage'
+import ParentPortalLayout from './features/parent-portal/pages/ParentPortalLayout'
+import ParentDashboardPage from './features/parent-portal/pages/ParentDashboardPage'
 import './index.css'
 
 function App() {
@@ -167,6 +169,11 @@ function App() {
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
               <Route path="/exams/:id/results" element={<ResultsViewPage />} />
               <Route path="/exams/:id/report-card/:studentId" element={<ReportCardPage />} />
+            </Route>
+
+            {/* Parent Portal */}
+            <Route element={<RequireRole roles={['parent']} />}>
+              <Route path="/portal" element={<ParentPortalLayout><ParentDashboardPage /></ParentPortalLayout>} />
             </Route>
           </Route>
 

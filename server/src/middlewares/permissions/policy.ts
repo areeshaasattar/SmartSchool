@@ -91,6 +91,9 @@ export const permissionPolicy: Record<string, Permission> = {
   'assignment:submit': ['super_admin', 'school_admin', 'student'],
   'assignment:grade': ['super_admin', 'school_admin', 'principal', 'teacher'],
 
+  // ── Parent portal ────────────────────────────────────────────────
+  'portal:read': ['parent'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }
