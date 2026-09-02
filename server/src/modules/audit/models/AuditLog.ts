@@ -72,7 +72,7 @@ export const AuditLog = mongoose.model<IAuditLog>('AuditLog', auditLogSchema)
 export interface AuditLogInput {
   schoolId?: mongoose.Types.ObjectId | string
   actorId: mongoose.Types.ObjectId | string
-  actorEmail: string
+  actorEmail?: string
   action: string
   entity: string
   entityId?: string
@@ -89,8 +89,14 @@ export interface AuditLogInput {
  */
 export async function writeAuditLog(entry: AuditLogInput): Promise<void> {
   try {
+    const actorEmail = entry.actorEmail ?? (await import('../../auth/models/User.js')).User
+      .findById(entry.actorId)
+      .select('email')
+      .lean()
+      .then((user) => user?.email ?? 'unknown')
     await AuditLog.create({
       ...entry,
+      actorEmail,
       timestamp: entry.timestamp ?? new Date(),
     })
   } catch (error) {

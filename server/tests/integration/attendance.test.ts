@@ -213,6 +213,7 @@ describe('Attendance Service', () => {
     it('rejects future dates', async () => {
       const futureDate = new Date()
       futureDate.setDate(futureDate.getDate() + 1)
+      const futureDateKey = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}-${String(futureDate.getDate()).padStart(2, '0')}`
 
       ;(Class.findOne as jest.Mock).mockResolvedValue({
         _id: new mongoose.Types.ObjectId(),
@@ -222,7 +223,7 @@ describe('Attendance Service', () => {
       await expect(
         attendanceService.markAttendance(schoolId, {
           classId: new mongoose.Types.ObjectId().toString(),
-          date: futureDate.toISOString().split('T')[0],
+          date: futureDateKey,
           records: [{ studentId: 'student1', status: 'present' }],
         }, userId),
       ).rejects.toThrow('future date')

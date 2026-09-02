@@ -66,12 +66,7 @@ export default function Student360Page() {
             </p>
           </div>
         </div>
-        <Link
-          to={`/students/${id}/edit`}
-          className="rounded-lg border border-secondary-300 px-4 py-2 text-sm font-medium text-secondary-700 hover:bg-secondary-50"
-        >
-          Edit
-        </Link>
+        <div className="flex gap-2"><Link to={`/audit/history?entity=student&entityId=${id}`} className="rounded-lg border border-secondary-300 px-4 py-2 text-sm font-medium text-secondary-700 hover:bg-secondary-50">View history</Link><Link to={`/students/${id}/edit`} className="rounded-lg border border-secondary-300 px-4 py-2 text-sm font-medium text-secondary-700 hover:bg-secondary-50">Edit</Link></div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

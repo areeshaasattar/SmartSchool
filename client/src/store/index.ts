@@ -1,5 +1,6 @@
 import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { setAccessToken, setActiveSchoolId } from '../services/api'
+import { auditApi } from '../features/audit/services/auditApi'
 
 export interface UserProfile {
   firstName: string
@@ -128,7 +129,9 @@ export const store = configureStore({
     auth: authSlice.reducer,
     tenant: tenantSlice.reducer,
     parentPortal: parentPortalSlice.reducer,
+    [auditApi.reducerPath]: auditApi.reducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(auditApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>
