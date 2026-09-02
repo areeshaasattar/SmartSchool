@@ -118,6 +118,14 @@ export const permissionPolicy: Record<string, Permission> = {
   'document:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
   'document:delete': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr'],
 
+  // ── Analytics Dashboards ─────────────────────────────────────────
+  'analytics:school_admin': ['super_admin', 'school_admin'],
+  'analytics:principal': ['super_admin', 'school_admin', 'principal'],
+  'analytics:teacher': ['super_admin', 'school_admin', 'principal', 'teacher'],
+  'analytics:accountant': ['super_admin', 'school_admin', 'accountant'],
+  'analytics:student': ['super_admin', 'school_admin', 'principal', 'teacher', 'student'],
+  'analytics:parent': ['super_admin', 'school_admin', 'principal', 'parent'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }

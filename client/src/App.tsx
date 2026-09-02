@@ -8,7 +8,6 @@ import RegisterPage from './features/auth/pages/RegisterPage'
 import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage'
 import ResetPasswordPage from './features/auth/pages/ResetPasswordPage'
 import VerifyEmailPage from './features/auth/pages/VerifyEmailPage'
-import DashboardPage from './features/auth/pages/DashboardPage'
 import ForbiddenPage from './features/auth/pages/ForbiddenPage'
 import SchoolSettingsPage from './features/school-settings/pages/SchoolSettingsPage'
 import AcademicYearsPage from './features/school-settings/pages/AcademicYearsPage'
@@ -74,6 +73,11 @@ import RouteListPage from './features/transport/pages/RouteListPage'
 import RouteDetailPage from './features/transport/pages/RouteDetailPage'
 import RouteFormPage from './features/transport/pages/RouteFormPage'
 import StudentTransportPage from './features/transport/pages/StudentTransportPage'
+import SchoolAdminDashboard from './features/analytics/pages/SchoolAdminDashboard'
+import PrincipalDashboard from './features/analytics/pages/PrincipalDashboard'
+import TeacherDashboard from './features/analytics/pages/TeacherDashboard'
+import AccountantDashboard from './features/analytics/pages/AccountantDashboard'
+import StudentDashboard from './features/analytics/pages/StudentDashboard'
 import './index.css'
 
 function App() {
@@ -91,7 +95,23 @@ function App() {
 
           {/* Protected routes — any authenticated user */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
+            {/* Role-based dashboards */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin']} />}>
+              <Route path="/dashboard" element={<SchoolAdminDashboard />} />
+            </Route>
+            <Route element={<RequireRole roles={['principal']} />}>
+              <Route path="/dashboard" element={<PrincipalDashboard />} />
+            </Route>
+            <Route element={<RequireRole roles={['teacher']} />}>
+              <Route path="/dashboard" element={<TeacherDashboard />} />
+            </Route>
+            <Route element={<RequireRole roles={['accountant']} />}>
+              <Route path="/dashboard" element={<AccountantDashboard />} />
+            </Route>
+            <Route element={<RequireRole roles={['student']} />}>
+              <Route path="/dashboard" element={<StudentDashboard />} />
+            </Route>
+            {/* Parent uses portal */}
 
             {/* School settings — school_admin / principal */}
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal']} />}>
