@@ -12,8 +12,41 @@ import {
 import * as studentService from '../services/studentService.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
 import mongoose from 'mongoose'
+import multer from 'multer'
+import { Student } from '../models/Student.js'
+import { studentImportRowSchema } from '../../../shared/importExport/rowSchemas.js'
+import { parseSpreadsheet, exportData, type ExportFormat } from '../../../shared/importExport/spreadsheet.js'
+import { runImport, storeImport, takeImport } from '../../../shared/importExport/pipeline.js'
+import { z } from 'zod'
 
 const router = Router()
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
+
+router.post('/import/validate', authenticate, resolveTenant, requirePermission('student:create'), upload.single('file'), async (req: Request, res: Response) => {
+  if (!req.file) { res.status(400).json({ error: 'A CSV or XLSX file is required' }); return }
+  const schoolId = req.tenantId!
+  try {
+    const report = await runImport({ schoolId, entity: 'student', rows: parseSpreadsheet(req.file.buffer), rowValidator: studentImportRowSchema, uniqueKey: (row) => row.admissionNo.toLowerCase(), exists: async (row) => Boolean(await Student.exists({ schoolId, admissionNo: row.admissionNo })) })
+    res.json({ ...report, validRows: report.validRows.length, token: storeImport(schoolId, 'student', report) })
+  } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to validate import' }) }
+})
+
+router.post('/import/confirm', authenticate, resolveTenant, requirePermission('student:create'), async (req: Request, res: Response) => {
+  try {
+    const rows = takeImport<z.infer<typeof studentImportRowSchema>>(String(req.body.token || ''), req.tenantId!, 'student'); let imported = 0; const errors: string[] = []
+    for (const row of rows) { try { await studentService.createStudent({ schoolId: req.tenantId!, admissionNo: row.admissionNo, profile: { firstName: row.firstName, lastName: row.lastName, dob: new Date(row.dob), gender: row.gender }, emergencyContact: { name: row.emergencyContactName, relation: row.emergencyContactRelation, phone: row.emergencyContactPhone } }); imported++ } catch (error) { errors.push(`${row.admissionNo}: ${error instanceof Error ? error.message : 'Unable to import'}`) } }
+    await writeAuditLog({ schoolId: req.tenantId!, actorId: req.user!._id, actorEmail: req.user!.email, action: 'student:bulk_import', entity: 'Student', after: { imported, skipped: rows.length - imported } })
+    res.status(201).json({ imported, skipped: rows.length - imported, errors })
+  } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to confirm import' }) }
+})
+
+router.get('/export', authenticate, resolveTenant, requirePermission('student:list'), async (req: Request, res: Response) => {
+  const format = String(req.query.format || 'csv') as ExportFormat
+  if (!['csv', 'xlsx', 'pdf'].includes(format)) { res.status(400).json({ error: 'format must be csv, xlsx, or pdf' }); return }
+  const students = await Student.find({ schoolId: req.tenantId! }).select('admissionNo profile status createdAt').lean()
+  const file = await exportData({ format, columns: [{ key: 'admissionNo', label: 'Admission No' }, { key: 'name', label: 'Name' }, { key: 'gender', label: 'Gender' }, { key: 'status', label: 'Status' }], rows: students.map((student) => ({ admissionNo: student.admissionNo, name: `${student.profile.firstName} ${student.profile.lastName}`, gender: student.profile.gender, status: student.status })) })
+  res.type(file.contentType).attachment(`students.${file.extension}`).send(file.buffer)
+})
 
 // ── POST /students — create student + optionally create/link guardian ─
 

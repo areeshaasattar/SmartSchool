@@ -11,8 +11,41 @@ import {
 import * as teacherService from '../services/teacherService.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
 import mongoose from 'mongoose'
+import multer from 'multer'
+import { Teacher } from '../models/Teacher.js'
+import { z } from 'zod'
+import { teacherImportRowSchema } from '../../../shared/importExport/rowSchemas.js'
+import { parseSpreadsheet, exportData, type ExportFormat } from '../../../shared/importExport/spreadsheet.js'
+import { runImport, storeImport, takeImport } from '../../../shared/importExport/pipeline.js'
 
 const router = Router()
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
+
+router.post('/import/validate', authenticate, resolveTenant, requirePermission('teacher:create'), upload.single('file'), async (req: Request, res: Response) => {
+  if (!req.file) { res.status(400).json({ error: 'A CSV or XLSX file is required' }); return }
+  const schoolId = req.tenantId!
+  try {
+    const report = await runImport({ schoolId, entity: 'teacher', rows: parseSpreadsheet(req.file.buffer), rowValidator: teacherImportRowSchema, uniqueKey: (row) => row.employeeNo.toLowerCase(), exists: async (row) => Boolean(await Teacher.exists({ schoolId, employeeNo: row.employeeNo })) })
+    res.json({ ...report, validRows: report.validRows.length, token: storeImport(schoolId, 'teacher', report) })
+  } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to validate import' }) }
+})
+
+router.post('/import/confirm', authenticate, resolveTenant, requirePermission('teacher:create'), async (req: Request, res: Response) => {
+  try {
+    const rows = takeImport<z.infer<typeof teacherImportRowSchema>>(String(req.body.token || ''), req.tenantId!, 'teacher'); let imported = 0; const errors: string[] = []
+    for (const row of rows) { try { await teacherService.createTeacher({ schoolId: req.tenantId!, employeeNo: row.employeeNo, profile: { firstName: row.firstName, lastName: row.lastName }, employment: { designation: row.designation, joiningDate: new Date(row.joiningDate), employmentType: row.employmentType }, user: { email: row.email, firstName: row.firstName, lastName: row.lastName } }); imported++ } catch (error) { errors.push(`${row.employeeNo}: ${error instanceof Error ? error.message : 'Unable to import'}`) } }
+    await writeAuditLog({ schoolId: req.tenantId!, actorId: req.user!._id, actorEmail: req.user!.email, action: 'teacher:bulk_import', entity: 'Teacher', after: { imported, skipped: rows.length - imported } })
+    res.status(201).json({ imported, skipped: rows.length - imported, errors })
+  } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to confirm import' }) }
+})
+
+router.get('/export', authenticate, resolveTenant, requirePermission('teacher:list'), async (req: Request, res: Response) => {
+  const format = String(req.query.format || 'csv') as ExportFormat
+  if (!['csv', 'xlsx', 'pdf'].includes(format)) { res.status(400).json({ error: 'format must be csv, xlsx, or pdf' }); return }
+  const teachers = await Teacher.find({ schoolId: req.tenantId! }).select('employeeNo profile employment').lean()
+  const file = await exportData({ format, columns: [{ key: 'employeeNo', label: 'Employee No' }, { key: 'name', label: 'Name' }, { key: 'designation', label: 'Designation' }, { key: 'status', label: 'Status' }], rows: teachers.map((teacher) => ({ employeeNo: teacher.employeeNo, name: `${teacher.profile.firstName} ${teacher.profile.lastName}`, designation: teacher.employment.designation, status: teacher.employment.status })) })
+  res.type(file.contentType).attachment(`teachers.${file.extension}`).send(file.buffer)
+})
 
 // ── POST /teachers — create teacher + optionally create/link user ────
 

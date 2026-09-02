@@ -13,6 +13,8 @@ import {
 } from '../schemas/financeSchemas.js'
 import * as financeService from '../services/financeService.js'
 import mongoose from 'mongoose'
+import { FeeInvoice } from '../models/FeeInvoice.js'
+import { exportData, type ExportFormat } from '../../../shared/importExport/spreadsheet.js'
 
 const router = Router()
 
@@ -76,6 +78,14 @@ router.patch(
 )
 
 // ── Invoices ─────────────────────────────────────────────────────────
+
+router.get('/invoices/export', authenticate, resolveTenant, requirePermission('finance:read'), async (req: Request, res: Response) => {
+  const format = String(req.query.format || 'csv') as ExportFormat
+  if (!['csv', 'xlsx', 'pdf'].includes(format)) { res.status(400).json({ error: 'format must be csv, xlsx, or pdf' }); return }
+  const invoices = await FeeInvoice.find({ schoolId: req.tenantId! }).populate('studentId', 'admissionNo profile.firstName profile.lastName').lean()
+  const file = await exportData({ format, columns: [{ key: 'student', label: 'Student' }, { key: 'total', label: 'Total' }, { key: 'paid', label: 'Paid' }, { key: 'balance', label: 'Balance' }, { key: 'status', label: 'Status' }], rows: invoices.map((invoice) => ({ student: `${(invoice.studentId as any)?.profile?.firstName ?? ''} ${(invoice.studentId as any)?.profile?.lastName ?? ''}`.trim(), total: invoice.totalAmount, paid: invoice.amountPaid, balance: invoice.balance, status: invoice.status })) })
+  res.type(file.contentType).attachment(`invoices.${file.extension}`).send(file.buffer)
+})
 
 router.post(
   '/invoices/generate',
