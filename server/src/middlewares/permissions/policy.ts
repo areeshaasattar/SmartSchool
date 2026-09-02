@@ -77,6 +77,12 @@ export const permissionPolicy: Record<string, Permission> = {
   'subject:update': ['super_admin', 'school_admin'],
   'subject:delete': ['super_admin', 'school_admin'],
 
+  // ── Timetable ────────────────────────────────────────────────────
+  'timetable:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent'],
+  'timetable:create': ['super_admin', 'school_admin'],
+  'timetable:update': ['super_admin', 'school_admin'],
+  'timetable:delete': ['super_admin', 'school_admin'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }
