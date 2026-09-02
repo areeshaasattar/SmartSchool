@@ -9,6 +9,8 @@ import { Result } from '../../src/modules/exams/models/Result.js'
 import { Assignment } from '../../src/modules/assignments/models/Assignment.js'
 import { Submission } from '../../src/modules/assignments/models/Submission.js'
 import { FeeInvoice } from '../../src/modules/finance/models/FeeInvoice.js'
+import { Conversation } from '../../src/modules/communication/models/Conversation.js'
+import { Message } from '../../src/modules/communication/models/Message.js'
 import portalRoutes from '../../src/modules/parent-portal/routes/portalRoutes.js'
 
 // ── Mocks ────────────────────────────────────────────────────────────
@@ -53,6 +55,8 @@ jest.spyOn(Result, 'find')
 jest.spyOn(Assignment, 'find')
 jest.spyOn(Submission, 'findOne')
 jest.spyOn(FeeInvoice, 'find')
+jest.spyOn(Conversation, 'find')
+jest.spyOn(Message, 'countDocuments')
 
 // ── App setup ────────────────────────────────────────────────────────
 
@@ -163,6 +167,10 @@ describe('Parent Portal', () => {
         }),
       })
       ;(FeeInvoice.find as jest.Mock).mockResolvedValue([])
+      ;(Conversation.find as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue([]),
+      })
+      ;(Message.countDocuments as jest.Mock).mockResolvedValue(0)
 
       const app = createApp()
       const res = await request(app)

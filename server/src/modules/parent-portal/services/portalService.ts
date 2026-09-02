@@ -7,6 +7,8 @@ import { Result } from '../../exams/models/Result.js'
 import { Assignment } from '../../assignments/models/Assignment.js'
 import { Submission } from '../../assignments/models/Submission.js'
 import { FeeInvoice } from '../../finance/models/FeeInvoice.js'
+import { Conversation } from '../../communication/models/Conversation.js'
+import { Message } from '../../communication/models/Message.js'
 
 // ── Children list ────────────────────────────────────────────────────
 
@@ -108,7 +110,18 @@ export async function getDashboard(parentUserId: string, schoolId: string, stude
   const fees = invoices.length > 0
     ? { outstanding: totalOutstanding, invoiceCount: invoices.length, overdueCount }
     : null
-  const messages = { unread: 0, recent: [] }
+  // ── Unread messages count (real data) ──────────────────────────
+  const conversations = await Conversation.find({ schoolId, participants: parentUserId }).select('_id')
+  let unreadMessages = 0
+  if (conversations.length > 0) {
+    unreadMessages = await Message.countDocuments({
+      conversationId: { $in: conversations.map((c) => c._id) },
+      schoolId,
+      senderId: { $ne: parentUserId },
+      'readBy.userId': { $ne: parentUserId },
+    })
+  }
+  const messages = { unread: unreadMessages }
   const leave = { pending: 0, approved: 0, recent: [] }
   const announcements = { count: 0, recent: [] }
 

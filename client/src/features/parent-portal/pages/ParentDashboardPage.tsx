@@ -205,11 +205,23 @@ export default function ParentDashboardPage() {
             </div>
           )}
 
-          {/* Messages Card — Stub */}
-          <div className="rounded-xl bg-secondary-50 p-5 shadow-lg border-2 border-dashed border-secondary-200">
-            <h3 className="text-sm font-bold text-secondary-500 uppercase tracking-wide mb-2">✉️ Messages</h3>
-            <p className="text-sm text-secondary-400">Coming soon</p>
-            <p className="text-xs text-secondary-300 mt-2">Messaging will be available in a future update.</p>
+          {/* Messages Card */}
+          <div className="rounded-xl bg-white p-5 shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-secondary-900 uppercase tracking-wide">✉️ Messages</h3>
+              {dashboard.messages.unread > 0 && (
+                <span className="rounded-full bg-red-500 text-white text-xs font-bold px-2 py-0.5">
+                  {dashboard.messages.unread}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-secondary-500">
+              {dashboard.messages.unread > 0
+                ? `${dashboard.messages.unread} unread message${dashboard.messages.unread !== 1 ? 's' : ''}`
+                : 'No unread messages'}
+            </p>
+            <Link to="/messages"
+              className="text-xs text-primary-700 hover:underline mt-2 inline-block">View Messages →</Link>
           </div>
 
           {/* Leave Card — Stub */}

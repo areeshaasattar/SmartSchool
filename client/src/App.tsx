@@ -52,6 +52,9 @@ import InvoiceGeneratePage from './features/fees/pages/InvoiceGeneratePage'
 import CollectionDashboardPage from './features/fees/pages/CollectionDashboardPage'
 import StudentFeeViewPage from './features/fees/pages/StudentFeeViewPage'
 import ReceiptViewPage from './features/fees/pages/ReceiptViewPage'
+import ConversationListPage from './features/messages/pages/ConversationListPage'
+import ConversationThreadPage from './features/messages/pages/ConversationThreadPage'
+import NewConversationPage from './features/messages/pages/NewConversationPage'
 import ParentPortalLayout from './features/parent-portal/pages/ParentPortalLayout'
 import ParentDashboardPage from './features/parent-portal/pages/ParentDashboardPage'
 import './index.css'
@@ -194,6 +197,11 @@ function App() {
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'student', 'parent']} />}>
               <Route path="/fees/payments/:id/receipt" element={<ReceiptViewPage />} />
             </Route>
+
+            {/* Messaging — all authenticated users */}
+            <Route path="/messages" element={<ConversationListPage />} />
+            <Route path="/messages/new" element={<NewConversationPage />} />
+            <Route path="/messages/:id" element={<ConversationThreadPage />} />
 
             {/* Parent Portal */}
             <Route element={<RequireRole roles={['parent']} />}>
