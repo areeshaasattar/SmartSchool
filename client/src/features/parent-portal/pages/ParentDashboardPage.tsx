@@ -19,7 +19,7 @@ interface DashboardData {
   upcomingExams: { _id: string; name: string; term: string; status: string }[]
   recentResults: { _id: string; examName: string; percentage: number; overallGrade: string; rank?: number }[]
   recentAssignments: { _id: string; title: string; subject: { name: string }; dueDate: string; submissionStatus: string; marks?: number }[]
-  fees: { balance: number }
+  fees: { outstanding: number; invoiceCount: number; overdueCount: number } | null
   messages: { unread: number }
   leave: { pending: number }
   announcements: { count: number }
@@ -183,12 +183,27 @@ export default function ParentDashboardPage() {
             )}
           </div>
 
-          {/* Fees Card — Stub */}
-          <div className="rounded-xl bg-secondary-50 p-5 shadow-lg border-2 border-dashed border-secondary-200">
-            <h3 className="text-sm font-bold text-secondary-500 uppercase tracking-wide mb-2">💰 Fees</h3>
-            <p className="text-sm text-secondary-400">Coming soon</p>
-            <p className="text-xs text-secondary-300 mt-2">Fee management will be available in a future update.</p>
-          </div>
+          {/* Fees Card */}
+          {dashboard.fees ? (
+            <div className="rounded-xl bg-white p-5 shadow-lg">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-secondary-900 uppercase tracking-wide">💰 Fees</h3>
+                <span className={`text-2xl font-bold ${dashboard.fees.outstanding > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  ${dashboard.fees.outstanding.toLocaleString()}
+                </span>
+              </div>
+              <div className="space-y-1 text-xs text-secondary-500">
+                <p>{dashboard.fees.invoiceCount} invoice(s), {dashboard.fees.overdueCount} overdue</p>
+              </div>
+              <Link to="/portal/fees"
+                className="text-xs text-primary-700 hover:underline mt-2 inline-block">View Fee Details →</Link>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-secondary-50 p-5 shadow-lg border-2 border-dashed border-secondary-200">
+              <h3 className="text-sm font-bold text-secondary-500 uppercase tracking-wide mb-2">💰 Fees</h3>
+              <p className="text-sm text-secondary-400">No fee data available</p>
+            </div>
+          )}
 
           {/* Messages Card — Stub */}
           <div className="rounded-xl bg-secondary-50 p-5 shadow-lg border-2 border-dashed border-secondary-200">
