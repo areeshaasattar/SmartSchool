@@ -1,3 +1,22 @@
+import { Resend } from 'resend'
+
+// Lazy singleton — Resend is created on first use so that process.env
+// is read *after* dotenv.config() has run (ES module imports are hoisted
+// before the calling module's top-level code executes).
+let resend: Resend | null = null
+
+function getResendClient(): Resend | null {
+  if (resend) return resend
+
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    return null
+  }
+
+  resend = new Resend(apiKey)
+  return resend
+}
+
 export interface EmailOptions {
   to: string
   subject: string
@@ -6,20 +25,31 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
   const emailFrom = process.env.EMAIL_FROM || 'noreply@smartschool.com'
-  const nodeEnv = process.env.NODE_ENV || 'development'
+  const client = getResendClient()
 
-  if (nodeEnv === 'development') {
-    console.log('\n📧 [EMAIL STUB] Sending email:')
-    console.log(`   From: ${emailFrom}`)
-    console.log(`   To: ${options.to}`)
-    console.log(`   Subject: ${options.subject}`)
-    console.log(`   Body: ${options.html}`)
-    console.log('📧 [END EMAIL STUB]\n')
+  if (!client) {
+    console.warn(`📧 [EMAIL SKIPPED] RESEND_API_KEY not set. Would send to: ${options.to}, subject: ${options.subject}`)
     return
   }
 
-  // TODO: Integrate real email provider (SendGrid, SES, etc.)
-  console.log(`Email sending not configured for environment: ${nodeEnv}`)
+  try {
+    const { error } = await client.emails.send({
+      from: emailFrom,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    })
+
+    if (error) {
+      console.error('📧 [EMAIL ERROR] Resend failed:', error.message)
+      throw new Error(`Failed to send email: ${error.message}`)
+    }
+
+    console.log(`📧 [EMAIL SENT] To: ${options.to}, Subject: ${options.subject}`)
+  } catch (error) {
+    console.error('📧 [EMAIL ERROR] Failed to send email:', error instanceof Error ? error.message : error)
+    throw error
+  }
 }
 
 export function buildVerificationEmail(verificationUrl: string): { subject: string; html: string } {

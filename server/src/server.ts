@@ -4,8 +4,10 @@ import dotenv from 'dotenv'
 import { connectDatabase } from './config/database.js'
 import { getRedisClient } from './shared/redis.js'
 import routes from './routes/index.js'
+import dns from 'node:dns'
 
 dotenv.config()
+dns.setServers(['8.8.8.8', '8.8.4.4'])
 
 const app = express()
 const PORT = process.env.PORT || 5000
