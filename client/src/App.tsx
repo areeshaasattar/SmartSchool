@@ -44,6 +44,14 @@ import ExamListPage from './features/exams/pages/ExamListPage'
 import MarksEntryPage from './features/exams/pages/MarksEntryPage'
 import ResultsViewPage from './features/exams/pages/ResultsViewPage'
 import ReportCardPage from './features/exams/pages/ReportCardPage'
+import FeeStructureListPage from './features/fees/pages/FeeStructureListPage'
+import FeeStructureFormPage from './features/fees/pages/FeeStructureFormPage'
+import InvoiceListPage from './features/fees/pages/InvoiceListPage'
+import InvoiceDetailPage from './features/fees/pages/InvoiceDetailPage'
+import InvoiceGeneratePage from './features/fees/pages/InvoiceGeneratePage'
+import CollectionDashboardPage from './features/fees/pages/CollectionDashboardPage'
+import StudentFeeViewPage from './features/fees/pages/StudentFeeViewPage'
+import ReceiptViewPage from './features/fees/pages/ReceiptViewPage'
 import ParentPortalLayout from './features/parent-portal/pages/ParentPortalLayout'
 import ParentDashboardPage from './features/parent-portal/pages/ParentDashboardPage'
 import './index.css'
@@ -171,9 +179,26 @@ function App() {
               <Route path="/exams/:id/report-card/:studentId" element={<ReportCardPage />} />
             </Route>
 
+            {/* Fees & Finance — Accountant / School Admin */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'accountant', 'principal']} />}>
+              <Route path="/fees/structures" element={<FeeStructureListPage />} />
+              <Route path="/fees/structures/new" element={<FeeStructureFormPage />} />
+              <Route path="/fees/structures/:id/edit" element={<FeeStructureFormPage />} />
+              <Route path="/fees/invoices" element={<InvoiceListPage />} />
+              <Route path="/fees/invoices/generate" element={<InvoiceGeneratePage />} />
+              <Route path="/fees/invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="/fees/collection" element={<CollectionDashboardPage />} />
+            </Route>
+
+            {/* Fees — Student/Parent */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'student', 'parent']} />}>
+              <Route path="/fees/payments/:id/receipt" element={<ReceiptViewPage />} />
+            </Route>
+
             {/* Parent Portal */}
             <Route element={<RequireRole roles={['parent']} />}>
               <Route path="/portal" element={<ParentPortalLayout><ParentDashboardPage /></ParentPortalLayout>} />
+              <Route path="/portal/fees" element={<ParentPortalLayout><StudentFeeViewPage /></ParentPortalLayout>} />
             </Route>
           </Route>
 

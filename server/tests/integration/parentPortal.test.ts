@@ -8,6 +8,7 @@ import { Exam } from '../../src/modules/exams/models/Exam.js'
 import { Result } from '../../src/modules/exams/models/Result.js'
 import { Assignment } from '../../src/modules/assignments/models/Assignment.js'
 import { Submission } from '../../src/modules/assignments/models/Submission.js'
+import { FeeInvoice } from '../../src/modules/finance/models/FeeInvoice.js'
 import portalRoutes from '../../src/modules/parent-portal/routes/portalRoutes.js'
 
 // ── Mocks ────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ jest.spyOn(Exam, 'find')
 jest.spyOn(Result, 'find')
 jest.spyOn(Assignment, 'find')
 jest.spyOn(Submission, 'findOne')
+jest.spyOn(FeeInvoice, 'find')
 
 // ── App setup ────────────────────────────────────────────────────────
 
@@ -160,6 +162,7 @@ describe('Parent Portal', () => {
           }),
         }),
       })
+      ;(FeeInvoice.find as jest.Mock).mockResolvedValue([])
 
       const app = createApp()
       const res = await request(app)
@@ -172,8 +175,8 @@ describe('Parent Portal', () => {
       expect(res.body.upcomingExams).toEqual([])
       expect(res.body.recentResults).toEqual([])
       expect(res.body.recentAssignments).toEqual([])
-      // Stubbed sections
-      expect(res.body.fees).toHaveProperty('balance')
+      // Fee data (null if no invoices)
+      expect(res.body.fees).toBeNull()
       expect(res.body.messages).toHaveProperty('unread')
       expect(res.body.leave).toHaveProperty('pending')
       expect(res.body.announcements).toHaveProperty('count')

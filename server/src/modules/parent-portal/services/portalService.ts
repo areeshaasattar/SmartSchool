@@ -6,6 +6,7 @@ import { Exam } from '../../exams/models/Exam.js'
 import { Result } from '../../exams/models/Result.js'
 import { Assignment } from '../../assignments/models/Assignment.js'
 import { Submission } from '../../assignments/models/Submission.js'
+import { FeeInvoice } from '../../finance/models/FeeInvoice.js'
 
 // ── Children list ────────────────────────────────────────────────────
 
@@ -96,8 +97,17 @@ export async function getDashboard(parentUserId: string, schoolId: string, stude
     })
   )
 
-  // ── Stubbed sections ───────────────────────────────────────────
-  const fees = { balance: 0, currency: 'USD', lastPayment: null, upcomingDue: null }
+  // ── Fee summary (real data from finance module) ───────────────
+  const invoices = await FeeInvoice.find({ schoolId, studentId })
+  let totalOutstanding = 0
+  let overdueCount = 0
+  for (const inv of invoices) {
+    totalOutstanding += inv.balance
+    if (inv.status === 'overdue') overdueCount++
+  }
+  const fees = invoices.length > 0
+    ? { outstanding: totalOutstanding, invoiceCount: invoices.length, overdueCount }
+    : null
   const messages = { unread: 0, recent: [] }
   const leave = { pending: 0, approved: 0, recent: [] }
   const announcements = { count: 0, recent: [] }
