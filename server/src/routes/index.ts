@@ -19,6 +19,7 @@ import leaveRoutes from '../modules/leave/routes/leaveRoutes.js'
 import disciplineRoutes from '../modules/discipline/routes/disciplineRoutes.js'
 import transportRoutes from '../modules/transport/routes/transportRoutes.js'
 import documentRoutes from '../modules/documents/routes/documentRoutes.js'
+import analyticsRoutes from '../modules/analytics/routes/analyticsRoutes.js'
 
 const router = Router()
 
@@ -42,5 +43,6 @@ router.use('/leave', leaveRoutes)
 router.use('/discipline', disciplineRoutes)
 router.use('/transport', transportRoutes)
 router.use('/documents', documentRoutes)
+router.use('/analytics', analyticsRoutes)
 
 export default router
