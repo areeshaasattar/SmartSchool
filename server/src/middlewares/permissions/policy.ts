@@ -113,6 +113,11 @@ export const permissionPolicy: Record<string, Permission> = {
   'discipline:create': ['super_admin', 'school_admin', 'principal', 'teacher'],
   'discipline:update': ['super_admin', 'school_admin', 'principal', 'teacher'],
 
+  // ── Documents ─────────────────────────────────────────────────
+  'document:upload': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr'],
+  'document:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
+  'document:delete': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }

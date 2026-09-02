@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../../services/api'
+import FileUploader from '../../documents/components/FileUploader'
 
 interface Child {
   id: string
@@ -15,6 +16,7 @@ export default function LeaveRequestFormPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [reason, setReason] = useState('')
+  const [attachments, setAttachments] = useState<{ url: string; filename: string; mimeType: string }[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -36,6 +38,7 @@ export default function LeaveRequestFormPage() {
         startDate,
         endDate,
         reason,
+        attachments,
       })
       navigate('/leave')
     } catch (err: unknown) {
@@ -126,6 +129,27 @@ export default function LeaveRequestFormPage() {
             rows={4}
             className="w-full rounded-lg border border-secondary-300 px-4 py-2 focus:border-primary-500 focus:outline-none"
             placeholder="Please provide a reason for the leave request..."
+          />
+        </div>
+
+        {/* Attachments */}
+        <div>
+          <label className="block text-sm font-medium text-secondary-700 mb-1">Attachments (optional)</label>
+          {attachments.length > 0 && (
+            <div className="mb-2 space-y-1">
+              {attachments.map((att, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-secondary-600">
+                  <span>📎 {att.filename}</span>
+                  <button type="button" onClick={() => setAttachments(attachments.filter((_, j) => j !== i))} className="text-red-500 hover:underline">Remove</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <FileUploader
+            ownerType="student"
+            ownerId={requesterId || 'pending'}
+            type="attachment"
+            onUploadComplete={(doc) => setAttachments(prev => [...prev, { url: doc.url, filename: doc.filename, mimeType: 'application/octet-stream' }])}
           />
         </div>
 

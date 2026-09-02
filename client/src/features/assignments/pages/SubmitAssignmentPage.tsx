@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../../../services/api'
+import FileUploader from '../../documents/components/FileUploader'
 
 interface Assignment {
   _id: string
@@ -32,8 +33,6 @@ export default function SubmitAssignmentPage() {
 
   const [content, setContent] = useState('')
   const [attachments, setAttachments] = useState<{ url: string; filename: string }[]>([])
-  const [newAttachmentUrl, setNewAttachmentUrl] = useState('')
-  const [newAttachmentName, setNewAttachmentName] = useState('')
 
   useEffect(() => {
     if (!assignmentId) return
@@ -63,11 +62,8 @@ export default function SubmitAssignmentPage() {
     }).catch(() => setLoading(false))
   }, [assignmentId])
 
-  const addAttachment = () => {
-    if (!newAttachmentUrl || !newAttachmentName) return
-    setAttachments([...attachments, { url: newAttachmentUrl, filename: newAttachmentName }])
-    setNewAttachmentUrl('')
-    setNewAttachmentName('')
+  const handleAttachmentUploaded = (doc: { _id: string; filename: string; url: string }) => {
+    setAttachments(prev => [...prev, { url: doc.url, filename: doc.filename }])
   }
 
   const removeAttachment = (idx: number) => {
@@ -150,7 +146,7 @@ export default function SubmitAssignmentPage() {
 
         {/* Attachments */}
         <div>
-          <label className="block text-sm font-medium text-secondary-700 mb-1">Attachments (URLs)</label>
+          <label className="block text-sm font-medium text-secondary-700 mb-1">Attachments</label>
           {attachments.map((att, i) => (
             <div key={i} className="flex items-center gap-2 mb-2">
               <a href={att.url} target="_blank" rel="noopener noreferrer"
@@ -158,15 +154,13 @@ export default function SubmitAssignmentPage() {
               <button onClick={() => removeAttachment(i)} className="text-xs text-red-600 hover:underline">Remove</button>
             </div>
           ))}
-          <div className="flex gap-2 mt-2">
-            <input type="url" value={newAttachmentUrl} onChange={(e) => setNewAttachmentUrl(e.target.value)}
-              placeholder="https://..." className="flex-1 rounded-lg border border-secondary-300 px-3 py-2 text-sm" />
-            <input type="text" value={newAttachmentName} onChange={(e) => setNewAttachmentName(e.target.value)}
-              placeholder="Filename" className="w-40 rounded-lg border border-secondary-300 px-3 py-2 text-sm" />
-            <button onClick={addAttachment} type="button"
-              className="rounded-lg border border-secondary-300 px-3 py-2 text-sm text-secondary-700 hover:bg-secondary-50">Add</button>
-          </div>
-          <p className="text-xs text-secondary-400 mt-1">Enter file URLs (e.g. from Google Drive, Dropbox, etc.)</p>
+          <FileUploader
+            ownerType="assignment_submission"
+            ownerId={assignmentId || ''}
+            type="attachment"
+            onUploadComplete={handleAttachmentUploaded}
+            className="mt-2"
+          />
         </div>
 
         <button onClick={handleSubmit} disabled={submitting}
