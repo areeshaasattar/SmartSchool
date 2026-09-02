@@ -10,6 +10,7 @@ import subjectRoutes from '../modules/classes/routes/subjectRoutes.js'
 import attendanceRoutes from '../modules/attendance/routes/attendanceRoutes.js'
 import timetableRoutes from '../modules/timetables/routes/timetableRoutes.js'
 import assignmentRoutes from '../modules/assignments/routes/assignmentRoutes.js'
+import examRoutes from '../modules/exams/routes/examRoutes.js'
 
 const router = Router()
 
@@ -24,5 +25,6 @@ router.use('/subjects', subjectRoutes)
 router.use('/attendance', attendanceRoutes)
 router.use('/timetable', timetableRoutes)
 router.use('/assignments', assignmentRoutes)
+router.use('/exams', examRoutes)
 
 export default router

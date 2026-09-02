@@ -39,6 +39,11 @@ import GradingViewPage from './features/assignments/pages/GradingViewPage'
 import StudentAssignmentListPage from './features/assignments/pages/StudentAssignmentListPage'
 import SubmitAssignmentPage from './features/assignments/pages/SubmitAssignmentPage'
 import ParentChildAssignmentsPage from './features/assignments/pages/ParentChildAssignmentsPage'
+import ExamSetupPage from './features/exams/pages/ExamSetupPage'
+import ExamListPage from './features/exams/pages/ExamListPage'
+import MarksEntryPage from './features/exams/pages/MarksEntryPage'
+import ResultsViewPage from './features/exams/pages/ResultsViewPage'
+import ReportCardPage from './features/exams/pages/ReportCardPage'
 import './index.css'
 
 function App() {
@@ -144,6 +149,24 @@ function App() {
             {/* Assignments — Parent */}
             <Route element={<RequireRole roles={['parent']} />}>
               <Route path="/child/:childId/assignments" element={<ParentChildAssignmentsPage />} />
+            </Route>
+
+            {/* Exams — Admin */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal']} />}>
+              <Route path="/exams" element={<ExamListPage />} />
+              <Route path="/exams/new" element={<ExamSetupPage />} />
+              <Route path="/exams/:id/publish" element={<ExamListPage />} />
+            </Route>
+
+            {/* Exams — Teacher (marks entry) */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher']} />}>
+              <Route path="/exams/:id/marks" element={<MarksEntryPage />} />
+            </Route>
+
+            {/* Exams — Student/Parent (results) */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
+              <Route path="/exams/:id/results" element={<ResultsViewPage />} />
+              <Route path="/exams/:id/report-card/:studentId" element={<ReportCardPage />} />
             </Route>
           </Route>
 
