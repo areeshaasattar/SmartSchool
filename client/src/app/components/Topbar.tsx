@@ -1,0 +1,6 @@
+import { Bell, Menu, MessageCircle, Search } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import type { RootState } from '../../store'
+import Avatar from './ui/Avatar'
+import IconButton from './ui/IconButton'
+export default function Topbar() { const user = useSelector((state: RootState) => state.auth.user); const name = user ? `${user.profile.firstName} ${user.profile.lastName}` : 'User'; return <header className="flex h-20 items-center justify-between gap-4 border-b border-secondary-100 bg-surface px-5 sm:px-8"><button className="lg:hidden" aria-label="Open navigation"><Menu /></button><div className="hidden max-w-md flex-1 items-center gap-2 rounded-pill bg-background px-4 py-2.5 sm:flex"><Search size={18} className="text-text-muted" /><input className="w-full bg-transparent text-sm outline-none" placeholder="Search students, teachers..." /></div><div className="ml-auto flex items-center gap-3"><IconButton icon={MessageCircle} label="Messages" /><IconButton icon={Bell} label="Notifications" /><div className="flex items-center gap-3 border-l border-secondary-100 pl-3"><div className="hidden text-right sm:block"><p className="text-sm font-semibold text-text-heading">{name}</p><p className="text-xs capitalize text-text-muted">{user?.roles[0]?.replace('_', ' ')}</p></div><Avatar name={name} online /></div></div></header> }
