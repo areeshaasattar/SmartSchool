@@ -45,9 +45,10 @@ export const permissionPolicy: Record<string, Permission> = {
   'student:update': ['super_admin', 'school_admin', 'principal'],
   'student:delete': ['super_admin', 'school_admin'],
 
-  // ── Attendance (stub — feature/attendance) ─────────────────────────
+  // ── Attendance ────────────────────────────────────────────────────
   'attendance:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent'],
   'attendance:mark': ['super_admin', 'school_admin', 'principal', 'teacher'],
+  'attendance:update': ['super_admin', 'school_admin', 'principal', 'teacher'],
 
   // ── Exams (stub — feature/exams) ──────────────────────────────────
   'exam:list': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent'],
