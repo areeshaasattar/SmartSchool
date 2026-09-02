@@ -194,7 +194,10 @@ describe('GET /api/schools', () => {
     const School = mongoose.model('School')
     ;(School.find as jest.Mock).mockReturnValue({
       sort: jest.fn().mockResolvedValue([
-        { _id: schoolId1, name: 'School A', code: 'SCA', status: 'active', createdAt: new Date() },
+        {
+          _id: schoolId1, name: 'School A', code: 'SCA', status: 'active',
+          settings: {}, subscription: {}, academicYears: [], createdAt: new Date(),
+        },
       ]),
     })
 

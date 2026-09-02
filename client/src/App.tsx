@@ -10,6 +10,9 @@ import ResetPasswordPage from './features/auth/pages/ResetPasswordPage'
 import VerifyEmailPage from './features/auth/pages/VerifyEmailPage'
 import DashboardPage from './features/auth/pages/DashboardPage'
 import ForbiddenPage from './features/auth/pages/ForbiddenPage'
+import SchoolSettingsPage from './features/school-settings/pages/SchoolSettingsPage'
+import AcademicYearsPage from './features/school-settings/pages/AcademicYearsPage'
+import SchoolsListPage from './features/school-settings/pages/SchoolsListPage'
 import './index.css'
 
 function App() {
@@ -28,12 +31,16 @@ function App() {
           {/* Protected routes — any authenticated user */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
-          </Route>
 
-          {/* Protected + role-gated routes (example pattern for future modules) */}
-          <Route element={<ProtectedRoute />}>
+            {/* School settings — school_admin / principal */}
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal']} />}>
-              {/* Future: school management pages go here */}
+              <Route path="/school-settings" element={<SchoolSettingsPage />} />
+              <Route path="/school-settings/academic-years" element={<AcademicYearsPage />} />
+            </Route>
+
+            {/* Super admin — all schools management */}
+            <Route element={<RequireRole roles={['super_admin']} />}>
+              <Route path="/admin/schools" element={<SchoolsListPage />} />
             </Route>
           </Route>
 

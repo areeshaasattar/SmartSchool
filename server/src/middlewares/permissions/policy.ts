@@ -16,6 +16,12 @@ export const permissionPolicy: Record<string, Permission> = {
   'school:list': ['super_admin'],
   'school:read': ['super_admin', 'school_admin', 'principal'],
   'school:update': ['super_admin', 'school_admin'],
+  'school:update_settings': ['super_admin', 'school_admin'],
+
+  // ── Academic year management ───────────────────────────────────────
+  'academic_year:list': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
+  'academic_year:create': ['super_admin', 'school_admin'],
+  'academic_year:update': ['super_admin', 'school_admin'],
 
   // ── User management ────────────────────────────────────────────────
   'user:list': ['super_admin', 'school_admin', 'principal'],
