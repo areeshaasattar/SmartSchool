@@ -5,12 +5,34 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // In-memory access token
 let accessToken: string | null = null
 
+// Active tenant (school) ID
+let activeSchoolId: string | null = null
+
 export function setAccessToken(token: string | null) {
   accessToken = token
 }
 
 export function getAccessToken() {
   return accessToken
+}
+
+export function setActiveSchoolId(schoolId: string | null) {
+  activeSchoolId = schoolId
+  if (schoolId) {
+    localStorage.setItem('activeSchoolId', schoolId)
+  } else {
+    localStorage.removeItem('activeSchoolId')
+  }
+}
+
+export function getActiveSchoolId() {
+  return activeSchoolId
+}
+
+// Restore from localStorage on load
+const storedSchoolId = localStorage.getItem('activeSchoolId')
+if (storedSchoolId) {
+  activeSchoolId = storedSchoolId
 }
 
 const api = axios.create({
@@ -20,11 +42,14 @@ const api = axios.create({
   },
 })
 
-// Request interceptor - attach access token
+// Request interceptor - attach access token and tenant header
 api.interceptors.request.use(
   (config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
+    }
+    if (activeSchoolId) {
+      config.headers['X-School-Id'] = activeSchoolId
     }
     return config
   },
@@ -57,6 +82,7 @@ api.interceptors.response.use(
           // Refresh failed - clear tokens and redirect to login
           setAccessToken(null)
           localStorage.removeItem('refreshToken')
+          localStorage.removeItem('activeSchoolId')
           window.location.href = '/login'
         }
       }

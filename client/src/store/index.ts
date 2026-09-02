@@ -1,5 +1,5 @@
 import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { setAccessToken } from '../services/api'
+import { setAccessToken, setActiveSchoolId } from '../services/api'
 
 export interface UserProfile {
   firstName: string
@@ -25,7 +25,7 @@ interface AuthState {
   isLoading: boolean
 }
 
-const initialState: AuthState = {
+const authInitialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
@@ -33,7 +33,7 @@ const initialState: AuthState = {
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState,
+  initialState: authInitialState,
   reducers: {
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload
@@ -45,7 +45,9 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.isLoading = false
       setAccessToken(null)
+      setActiveSchoolId(null)
       localStorage.removeItem('refreshToken')
+      localStorage.removeItem('activeSchoolId')
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload
@@ -56,15 +58,48 @@ const authSlice = createSlice({
       state.isLoading = false
       setAccessToken(action.payload.accessToken)
       localStorage.setItem('refreshToken', action.payload.refreshToken)
+
+      // Auto-select first school if user has schools
+      const schools = action.payload.user.schoolIds
+      if (schools && schools.length > 0) {
+        const firstSchoolId = schools[0]
+        setActiveSchoolId(firstSchoolId)
+      }
     },
   },
 })
 
 export const { setUser, clearUser, setLoading, loginSuccess } = authSlice.actions
 
+// ── Tenant slice ─────────────────────────────────────────────────────
+
+interface TenantState {
+  activeSchoolId: string | null
+}
+
+const tenantInitialState: TenantState = {
+  activeSchoolId: localStorage.getItem('activeSchoolId') || null,
+}
+
+const tenantSlice = createSlice({
+  name: 'tenant',
+  initialState: tenantInitialState,
+  reducers: {
+    switchSchool: (state, action: PayloadAction<string | null>) => {
+      state.activeSchoolId = action.payload
+      setActiveSchoolId(action.payload)
+    },
+  },
+})
+
+export const { switchSchool } = tenantSlice.actions
+
+// ── Store ────────────────────────────────────────────────────────────
+
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
+    tenant: tenantSlice.reducer,
   },
 })
 
