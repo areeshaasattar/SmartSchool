@@ -21,6 +21,11 @@ import TeacherListPage from './features/teachers/pages/TeacherListPage'
 import TeacherFormPage from './features/teachers/pages/TeacherFormPage'
 import TeacherProfilePage from './features/teachers/pages/TeacherProfilePage'
 import TeacherSelfPage from './features/teachers/pages/TeacherSelfPage'
+import ClassListPage from './features/classes/pages/ClassListPage'
+import ClassFormPage from './features/classes/pages/ClassFormPage'
+import ClassDetailPage from './features/classes/pages/ClassDetailPage'
+import SubjectListPage from './features/subjects/pages/SubjectListPage'
+import SubjectFormPage from './features/subjects/pages/SubjectFormPage'
 import './index.css'
 
 function App() {
@@ -73,6 +78,21 @@ function App() {
               <Route path="/teachers/:id/edit" element={<TeacherFormPage />} />
               <Route path="/teachers/:id/profile" element={<TeacherProfilePage />} />
               <Route path="/my-profile" element={<TeacherSelfPage />} />
+            </Route>
+
+            {/* Classes */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
+              <Route path="/classes" element={<ClassListPage />} />
+              <Route path="/classes/new" element={<ClassFormPage />} />
+              <Route path="/classes/:id" element={<ClassDetailPage />} />
+              <Route path="/classes/:id/edit" element={<ClassFormPage />} />
+            </Route>
+
+            {/* Subjects */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student']} />}>
+              <Route path="/subjects" element={<SubjectListPage />} />
+              <Route path="/subjects/new" element={<SubjectFormPage />} />
+              <Route path="/subjects/:id/edit" element={<SubjectFormPage />} />
             </Route>
           </Route>
 
