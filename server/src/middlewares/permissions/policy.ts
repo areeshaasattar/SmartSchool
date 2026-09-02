@@ -62,6 +62,20 @@ export const permissionPolicy: Record<string, Permission> = {
   'transport:read': ['super_admin', 'school_admin', 'transport_manager'],
   'transport:manage': ['super_admin', 'school_admin', 'transport_manager'],
 
+  // ── Classes ──────────────────────────────────────────────────────
+  'class:list': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent'],
+  'class:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent'],
+  'class:create': ['super_admin', 'school_admin'],
+  'class:update': ['super_admin', 'school_admin'],
+  'class:delete': ['super_admin', 'school_admin'],
+
+  // ── Subjects ──────────────────────────────────────────────────────
+  'subject:list': ['super_admin', 'school_admin', 'principal', 'teacher', 'student'],
+  'subject:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student'],
+  'subject:create': ['super_admin', 'school_admin'],
+  'subject:update': ['super_admin', 'school_admin'],
+  'subject:delete': ['super_admin', 'school_admin'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }

@@ -83,6 +83,10 @@ router.get(
       const isParent = req.user!.roles.includes('parent')
       const parentUserId = isParent ? (req.user!._id as mongoose.Types.ObjectId).toString() : undefined
 
+      // Teacher role: only students in their assigned classes
+      const isTeacher = req.user!.roles.includes('teacher') && !isParent
+      const teacherUserId = isTeacher ? (req.user!._id as mongoose.Types.ObjectId).toString() : undefined
+
       const result = await studentService.listStudents({
         schoolId: tenantId,
         page,
@@ -91,6 +95,7 @@ router.get(
         status,
         classId,
         parentUserId,
+        teacherUserId,
       })
 
       res.json(result)
@@ -117,7 +122,11 @@ router.get(
         return
       }
 
-      const student = await studentService.getStudentById(studentId, tenantId)
+      // Teacher role: scope to their assigned classes
+      const isTeacher = req.user!.roles.includes('teacher') && !req.user!.roles.includes('parent')
+      const teacherUserId = isTeacher ? (req.user!._id as mongoose.Types.ObjectId).toString() : undefined
+
+      const student = await studentService.getStudentById(studentId, tenantId, teacherUserId)
       if (!student) {
         res.status(404).json({ error: 'Student not found' })
         return

@@ -1,6 +1,8 @@
 import { Student, IStudent } from '../models/Student.js'
 import { Guardian, IGuardian } from '../models/Guardian.js'
 import { User } from '../../auth/models/User.js'
+import { Class } from '../../classes/models/Class.js'
+import { Teacher } from '../../teachers/models/Teacher.js'
 import { hashPassword } from '../../../shared/password.js'
 import mongoose from 'mongoose'
 
@@ -117,9 +119,28 @@ export async function createStudent(input: CreateStudentInput): Promise<IStudent
 export async function getStudentById(
   studentId: string,
   schoolId: string,
+  teacherUserId?: string,
 ): Promise<IStudent | null> {
-  return Student.findOne({ _id: studentId, schoolId })
+  const student = await Student.findOne({ _id: studentId, schoolId })
     .populate('guardianIds')
+  if (!student) return null
+
+  // Teacher visibility: verify the student is in one of the teacher's assigned classes
+  if (teacherUserId && student.classId) {
+    const teacher = await Teacher.findOne({ userId: teacherUserId, schoolId })
+    if (!teacher) return null
+    const cls = await Class.findOne({
+      _id: student.classId,
+      schoolId,
+      $or: [
+        { classTeacherId: teacher._id },
+        { teacherIds: teacher._id },
+      ],
+    })
+    if (!cls) return null
+  }
+
+  return student
 }
 
 export interface ListStudentsOptions {
@@ -131,10 +152,12 @@ export interface ListStudentsOptions {
   classId?: string
   /** For parent role: only return students linked to their guardians */
   parentUserId?: string
+  /** For teacher role: only return students in their assigned classes */
+  teacherUserId?: string
 }
 
 export async function listStudents(options: ListStudentsOptions) {
-  const { schoolId, page, limit, search, status, classId, parentUserId } = options
+  const { schoolId, page, limit, search, status, classId, parentUserId, teacherUserId } = options
   const skip = (page - 1) * limit
 
   const filter: Record<string, unknown> = { schoolId }
@@ -155,6 +178,26 @@ export async function listStudents(options: ListStudentsOptions) {
     const guardians = await Guardian.find({ userId: parentUserId, schoolId })
     const guardianIds = guardians.map((g) => g._id)
     filter.guardianIds = { $in: guardianIds }
+  }
+
+  // Teacher visibility: only students in their assigned classes
+  if (teacherUserId) {
+    const teacher = await Teacher.findOne({ userId: teacherUserId, schoolId })
+    if (teacher) {
+      // Find classes where this teacher is the classTeacher or assigned subject-teacher
+      const classes = await Class.find({
+        schoolId,
+        $or: [
+          { classTeacherId: teacher._id },
+          { teacherIds: teacher._id },
+        ],
+      })
+      const classIds = classes.map((c) => c._id)
+      filter.classId = { $in: classIds }
+    } else {
+      // Teacher record not found — return no students
+      filter.classId = { $in: [] }
+    }
   }
 
   const [students, total] = await Promise.all([
