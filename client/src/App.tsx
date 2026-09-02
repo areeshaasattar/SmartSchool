@@ -30,6 +30,9 @@ import MarkAttendancePage from './features/attendance/pages/MarkAttendancePage'
 import ClassAttendanceViewPage from './features/attendance/pages/ClassAttendanceViewPage'
 import StudentAttendanceHistoryPage from './features/attendance/pages/StudentAttendanceHistoryPage'
 import AttendanceAnalyticsPage from './features/attendance/pages/AttendanceAnalyticsPage'
+import TimetableBuilderPage from './features/timetable/pages/TimetableBuilderPage'
+import ClassTimetablePage from './features/timetable/pages/ClassTimetablePage'
+import TeacherTimetablePage from './features/timetable/pages/TeacherTimetablePage'
 import './index.css'
 
 function App() {
@@ -107,6 +110,15 @@ function App() {
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
               <Route path="/attendance/class/:classId" element={<ClassAttendanceViewPage />} />
               <Route path="/attendance/student/:studentId" element={<StudentAttendanceHistoryPage />} />
+            </Route>
+
+            {/* Timetable */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin']} />}>
+              <Route path="/timetable/builder" element={<TimetableBuilderPage />} />
+            </Route>
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
+              <Route path="/timetable/class/:classId" element={<ClassTimetablePage />} />
+              <Route path="/timetable/teacher/:teacherId" element={<TeacherTimetablePage />} />
             </Route>
           </Route>
 
