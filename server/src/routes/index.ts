@@ -13,6 +13,7 @@ import assignmentRoutes from '../modules/assignments/routes/assignmentRoutes.js'
 import examRoutes from '../modules/exams/routes/examRoutes.js'
 import parentPortalRoutes from '../modules/parent-portal/routes/portalRoutes.js'
 import financeRoutes from '../modules/finance/routes/financeRoutes.js'
+import messageRoutes from '../modules/communication/routes/messageRoutes.js'
 
 const router = Router()
 
@@ -30,5 +31,6 @@ router.use('/assignments', assignmentRoutes)
 router.use('/exams', examRoutes)
 router.use('/parent-portal', parentPortalRoutes)
 router.use('/fees', financeRoutes)
+router.use('/messages', messageRoutes)
 
 export default router

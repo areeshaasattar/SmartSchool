@@ -1,8 +1,10 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import { createServer } from 'http'
 import { connectDatabase } from './config/database.js'
 import { getRedisClient } from './shared/redis.js'
+import { initSocket } from './shared/socket.js'
 import routes from './routes/index.js'
 import dns from 'node:dns'
 
@@ -43,7 +45,9 @@ async function start() {
     // Connect to Redis
     getRedisClient()
 
-    app.listen(PORT, () => {
+    const httpServer = createServer(app)
+    initSocket(httpServer)
+    httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
   } catch (error) {

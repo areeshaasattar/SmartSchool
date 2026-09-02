@@ -94,6 +94,11 @@ export const permissionPolicy: Record<string, Permission> = {
   // ── Parent portal ────────────────────────────────────────────────
   'portal:read': ['parent'],
 
+  // ── Messaging ──────────────────────────────────────────────────
+  'message:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
+  'message:send': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
+  'message:create_conversation': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }
