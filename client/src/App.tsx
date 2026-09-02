@@ -17,6 +17,10 @@ import StudentListPage from './features/students/pages/StudentListPage'
 import StudentFormPage from './features/students/pages/StudentFormPage'
 import Student360Page from './features/students/pages/Student360Page'
 import MyChildrenPage from './features/students/pages/MyChildrenPage'
+import TeacherListPage from './features/teachers/pages/TeacherListPage'
+import TeacherFormPage from './features/teachers/pages/TeacherFormPage'
+import TeacherProfilePage from './features/teachers/pages/TeacherProfilePage'
+import TeacherSelfPage from './features/teachers/pages/TeacherSelfPage'
 import './index.css'
 
 function App() {
@@ -47,7 +51,7 @@ function App() {
               <Route path="/admin/schools" element={<SchoolsListPage />} />
             </Route>
 
-            {/* Student management — school_admin, principal, teacher, parent */}
+            {/* Student management */}
             <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'parent']} />}>
               <Route path="/students" element={<StudentListPage />} />
               <Route path="/students/new" element={<StudentFormPage />} />
@@ -59,6 +63,16 @@ function App() {
             {/* Parent — my children */}
             <Route element={<RequireRole roles={['parent']} />}>
               <Route path="/my-children" element={<MyChildrenPage />} />
+            </Route>
+
+            {/* Teacher management — school_admin, principal, hr, teacher (self) */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'hr', 'teacher']} />}>
+              <Route path="/teachers" element={<TeacherListPage />} />
+              <Route path="/teachers/new" element={<TeacherFormPage />} />
+              <Route path="/teachers/:id" element={<TeacherProfilePage />} />
+              <Route path="/teachers/:id/edit" element={<TeacherFormPage />} />
+              <Route path="/teachers/:id/profile" element={<TeacherProfilePage />} />
+              <Route path="/my-profile" element={<TeacherSelfPage />} />
             </Route>
           </Route>
 
