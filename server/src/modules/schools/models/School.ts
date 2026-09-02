@@ -20,6 +20,7 @@ export interface ISchoolSettings {
   gradingScale: string
   contact: ISchoolContact
   branding: ISchoolBranding
+  attendanceAlertThreshold: number // percentage below which a parent alert fires
 }
 
 export interface IAcademicYear {
@@ -76,6 +77,7 @@ const schoolSettingsSchema = new Schema<ISchoolSettings>(
     gradingScale: { type: String, default: 'letter', trim: true },
     contact: { type: schoolContactSchema, default: () => ({}) },
     branding: { type: schoolBrandingSchema, default: () => ({}) },
+    attendanceAlertThreshold: { type: Number, default: 75, min: 0, max: 100 },
   },
   { _id: false },
 )

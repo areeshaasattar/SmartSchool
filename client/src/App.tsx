@@ -26,6 +26,10 @@ import ClassFormPage from './features/classes/pages/ClassFormPage'
 import ClassDetailPage from './features/classes/pages/ClassDetailPage'
 import SubjectListPage from './features/subjects/pages/SubjectListPage'
 import SubjectFormPage from './features/subjects/pages/SubjectFormPage'
+import MarkAttendancePage from './features/attendance/pages/MarkAttendancePage'
+import ClassAttendanceViewPage from './features/attendance/pages/ClassAttendanceViewPage'
+import StudentAttendanceHistoryPage from './features/attendance/pages/StudentAttendanceHistoryPage'
+import AttendanceAnalyticsPage from './features/attendance/pages/AttendanceAnalyticsPage'
 import './index.css'
 
 function App() {
@@ -93,6 +97,16 @@ function App() {
               <Route path="/subjects" element={<SubjectListPage />} />
               <Route path="/subjects/new" element={<SubjectFormPage />} />
               <Route path="/subjects/:id/edit" element={<SubjectFormPage />} />
+            </Route>
+
+            {/* Attendance */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher']} />}>
+              <Route path="/attendance/mark" element={<MarkAttendancePage />} />
+              <Route path="/attendance/analytics" element={<AttendanceAnalyticsPage />} />
+            </Route>
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent']} />}>
+              <Route path="/attendance/class/:classId" element={<ClassAttendanceViewPage />} />
+              <Route path="/attendance/student/:studentId" element={<StudentAttendanceHistoryPage />} />
             </Route>
           </Route>
 
