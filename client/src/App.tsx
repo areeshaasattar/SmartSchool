@@ -59,6 +59,12 @@ import ParentPortalLayout from './features/parent-portal/pages/ParentPortalLayou
 import ParentDashboardPage from './features/parent-portal/pages/ParentDashboardPage'
 import NotificationsPage from './features/notifications/pages/NotificationsPage'
 import NotificationPreferencesPage from './features/notifications/pages/NotificationPreferencesPage'
+import LeaveRequestFormPage from './features/leave/pages/LeaveRequestFormPage'
+import LeaveListPage from './features/leave/pages/LeaveListPage'
+import LeaveReviewPage from './features/leave/pages/LeaveReviewPage'
+import DisciplineCreatePage from './features/discipline/pages/DisciplineCreatePage'
+import DisciplineListPage from './features/discipline/pages/DisciplineListPage'
+import DisciplineDetailPage from './features/discipline/pages/DisciplineDetailPage'
 import './index.css'
 
 function App() {
@@ -209,6 +215,20 @@ function App() {
             <Route element={<RequireRole roles={['parent']} />}>
               <Route path="/portal" element={<ParentPortalLayout><ParentDashboardPage /></ParentPortalLayout>} />
               <Route path="/portal/fees" element={<ParentPortalLayout><StudentFeeViewPage /></ParentPortalLayout>} />
+            </Route>
+
+            {/* Leave — all authenticated users */}
+            <Route path="/leave" element={<LeaveListPage />} />
+            <Route path="/leave/new" element={<LeaveRequestFormPage />} />
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'hr']} />}>
+              <Route path="/leave/:id/review" element={<LeaveReviewPage />} />
+            </Route>
+
+            {/* Discipline — teacher/admin */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal', 'teacher']} />}>
+              <Route path="/discipline" element={<DisciplineListPage />} />
+              <Route path="/discipline/new" element={<DisciplineCreatePage />} />
+              <Route path="/discipline/:id" element={<DisciplineDetailPage />} />
             </Route>
 
             {/* Notifications — all authenticated users */}

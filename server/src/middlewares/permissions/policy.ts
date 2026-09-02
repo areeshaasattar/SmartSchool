@@ -103,6 +103,16 @@ export const permissionPolicy: Record<string, Permission> = {
   'notification:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
   'notification:manage': ['super_admin', 'school_admin'],
 
+  // ── Leave ───────────────────────────────────────────────────────
+  'leave:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'hr'],
+  'leave:create': ['super_admin', 'school_admin', 'principal', 'teacher', 'parent'],
+  'leave:review': ['super_admin', 'school_admin', 'principal', 'hr'],
+
+  // ── Discipline ────────────────────────────────────────────────────
+  'discipline:read': ['super_admin', 'school_admin', 'principal', 'teacher'],
+  'discipline:create': ['super_admin', 'school_admin', 'principal', 'teacher'],
+  'discipline:update': ['super_admin', 'school_admin', 'principal', 'teacher'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }
