@@ -4,6 +4,7 @@ import { resolveTenant } from '../../../middlewares/tenant/resolveTenant.js'
 import { createConversationSchema, sendMessageSchema, conversationMessagesQuerySchema, markReadSchema } from '../schemas/messageSchemas.js'
 import * as messageService from '../services/messageService.js'
 import { getIO } from '../../../shared/socket.js'
+import { dispatchNotification } from '../../notifications/services/notificationService.js'
 import mongoose from 'mongoose'
 
 const router = Router()
@@ -123,6 +124,30 @@ router.post(
         }
       } catch {
         // Socket emit failure should not break the REST response
+      }
+
+      // Dispatch notification to other participants (separate concern from socket message:new)
+      // TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
+      try {
+        const conv = await messageService.getConversationById(tenantId, conversationId, userId)
+        if (conv) {
+          const participantIds = (conv.participants as unknown as { _id: mongoose.Types.ObjectId }[]).map((p) => p._id.toString())
+          const senderName = (req.user as { profile?: { firstName?: string; lastName?: string } })?.profile
+            ? `${(req.user as { profile: { firstName: string; lastName: string } }).profile.firstName} ${(req.user as { profile: { firstName: string; lastName: string } }).profile.lastName}`
+            : 'Someone'
+          for (const pid of participantIds) {
+            if (pid !== userId) {
+              void dispatchNotification({
+                schoolId: tenantId,
+                userId: pid,
+                type: 'message_received',
+                data: { senderName, conversationId },
+              })
+            }
+          }
+        }
+      } catch {
+        // Notification failure should not break the REST response
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to send message'

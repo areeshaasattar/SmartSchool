@@ -99,6 +99,10 @@ export const permissionPolicy: Record<string, Permission> = {
   'message:send': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
   'message:create_conversation': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
 
+  // ── Notifications ──────────────────────────────────────────────
+  'notification:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
+  'notification:manage': ['super_admin', 'school_admin'],
+
   // ── Audit logs (stub — feature/audit-logs) ────────────────────────
   'audit:read': ['super_admin', 'school_admin'],
 }

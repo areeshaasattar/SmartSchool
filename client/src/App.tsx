@@ -57,6 +57,8 @@ import ConversationThreadPage from './features/messages/pages/ConversationThread
 import NewConversationPage from './features/messages/pages/NewConversationPage'
 import ParentPortalLayout from './features/parent-portal/pages/ParentPortalLayout'
 import ParentDashboardPage from './features/parent-portal/pages/ParentDashboardPage'
+import NotificationsPage from './features/notifications/pages/NotificationsPage'
+import NotificationPreferencesPage from './features/notifications/pages/NotificationPreferencesPage'
 import './index.css'
 
 function App() {
@@ -208,6 +210,10 @@ function App() {
               <Route path="/portal" element={<ParentPortalLayout><ParentDashboardPage /></ParentPortalLayout>} />
               <Route path="/portal/fees" element={<ParentPortalLayout><StudentFeeViewPage /></ParentPortalLayout>} />
             </Route>
+
+            {/* Notifications — all authenticated users */}
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
           </Route>
 
           {/* Default redirect */}
