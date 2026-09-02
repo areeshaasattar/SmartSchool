@@ -31,6 +31,13 @@ export const permissionPolicy: Record<string, Permission> = {
   // ── Auth (existing) ───────────────────────────────────────────────
   'auth:me': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
 
+  // ── Teachers ──────────────────────────────────────────────────────
+  'teacher:list': ['super_admin', 'school_admin', 'principal', 'hr', 'teacher'],
+  'teacher:read': ['super_admin', 'school_admin', 'principal', 'hr', 'teacher'],
+  'teacher:create': ['super_admin', 'school_admin', 'principal', 'hr'],
+  'teacher:update': ['super_admin', 'school_admin', 'principal', 'hr'],
+  'teacher:delete': ['super_admin', 'school_admin', 'hr'],
+
   // ── Students ───────────────────────────────────────────────────────
   'student:list': ['super_admin', 'school_admin', 'principal', 'teacher', 'parent'],
   'student:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'parent'],
