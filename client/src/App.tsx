@@ -78,6 +78,8 @@ import PrincipalDashboard from './features/analytics/pages/PrincipalDashboard'
 import TeacherDashboard from './features/analytics/pages/TeacherDashboard'
 import AccountantDashboard from './features/analytics/pages/AccountantDashboard'
 import StudentDashboard from './features/analytics/pages/StudentDashboard'
+import AuditLogsPage from './features/audit/pages/AuditLogsPage'
+import AuditLogDetailPage from './features/audit/pages/AuditLogDetailPage'
 import './index.css'
 
 function App() {
@@ -122,6 +124,11 @@ function App() {
             {/* Super admin — all schools management */}
             <Route element={<RequireRole roles={['super_admin']} />}>
               <Route path="/admin/schools" element={<SchoolsListPage />} />
+            </Route>
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal']} />}>
+              <Route path="/audit/logs" element={<AuditLogsPage />} />
+              <Route path="/audit/logs/:id" element={<AuditLogDetailPage />} />
+              <Route path="/audit/history" element={<AuditLogsPage history />} />
             </Route>
 
             {/* Student management */}

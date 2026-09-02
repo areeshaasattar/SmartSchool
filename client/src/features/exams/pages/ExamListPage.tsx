@@ -114,6 +114,7 @@ export default function ExamListPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
+                      <Link to={`/audit/history?entity=exam&entityId=${exam._id}`} className="text-xs text-secondary-600 hover:underline">History</Link>
                       {exam.status === 'draft' && (
                         <>
                           <Link to={`/exams/${exam._id}/marks`} className="text-xs text-primary-700 hover:underline">Enter Marks</Link>

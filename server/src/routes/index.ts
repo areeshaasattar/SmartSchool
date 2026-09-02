@@ -20,6 +20,7 @@ import disciplineRoutes from '../modules/discipline/routes/disciplineRoutes.js'
 import transportRoutes from '../modules/transport/routes/transportRoutes.js'
 import documentRoutes from '../modules/documents/routes/documentRoutes.js'
 import analyticsRoutes from '../modules/analytics/routes/analyticsRoutes.js'
+import auditRoutes from '../modules/audit/routes/auditRoutes.js'
 
 const router = Router()
 
@@ -44,5 +45,6 @@ router.use('/discipline', disciplineRoutes)
 router.use('/transport', transportRoutes)
 router.use('/documents', documentRoutes)
 router.use('/analytics', analyticsRoutes)
+router.use('/audit', auditRoutes)
 
 export default router

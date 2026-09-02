@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { DisciplineRecord, IDisciplineRecord } from '../models/DisciplineRecord.js'
-import { AuditLog } from '../../audit/models/AuditLog.js'
+import { writeAuditLog } from '../../audit/models/AuditLog.js'
 
 // ── Create discipline record ─────────────────────────────────────────
 
@@ -34,12 +34,12 @@ export async function createDisciplineRecord(
   })
 
   // Audit log
-  await AuditLog.create({
-    schoolId: new mongoose.Types.ObjectId(schoolId),
-    actorId: new mongoose.Types.ObjectId(reportedBy),
+  await writeAuditLog({
+    schoolId,
+    actorId: reportedBy,
     action: 'discipline:create',
     entity: 'DisciplineRecord',
-    entityId: record._id,
+    entityId: record._id.toString(),
     after: {
       studentId: data.studentId,
       category: data.category,
@@ -155,12 +155,12 @@ export async function updateDisciplineRecord(
   await record.save()
 
   // Audit log
-  await AuditLog.create({
-    schoolId: new mongoose.Types.ObjectId(schoolId),
-    actorId: new mongoose.Types.ObjectId(userId),
+  await writeAuditLog({
+    schoolId,
+    actorId: userId,
     action: 'discipline:update',
     entity: 'DisciplineRecord',
-    entityId: record._id,
+    entityId: record._id.toString(),
     after: data,
   })
 
@@ -195,12 +195,12 @@ export async function addFollowUp(
   await record.save()
 
   // Audit log
-  await AuditLog.create({
-    schoolId: new mongoose.Types.ObjectId(schoolId),
-    actorId: new mongoose.Types.ObjectId(userId),
+  await writeAuditLog({
+    schoolId,
+    actorId: userId,
     action: 'discipline:follow_up',
     entity: 'DisciplineRecord',
-    entityId: record._id,
+    entityId: record._id.toString(),
     after: { note },
   })
 

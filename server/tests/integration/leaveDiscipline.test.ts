@@ -52,6 +52,7 @@ jest.mock('../../src/modules/audit/models/AuditLog.js', () => ({
   AuditLog: {
     create: jest.fn().mockResolvedValue({}),
   },
+  writeAuditLog: jest.fn().mockResolvedValue(undefined),
 }))
 
 const mockLeaveSave = jest.fn().mockResolvedValue(true)

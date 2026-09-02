@@ -115,9 +115,7 @@ export default function InvoiceDetailPage() {
             Invoice — {invoice.studentId?.profile?.firstName} {invoice.studentId?.profile?.lastName}
           </h1>
         </div>
-        <span className={`rounded-full px-3 py-1 text-sm font-medium ${statusColor(invoice.status)}`}>
-          {invoice.status.replace('_', ' ')}
-        </span>
+        <div className="flex items-center gap-3"><Link to={`/audit/history?entity=invoice&entityId=${id}`} className="text-sm text-primary-600 hover:underline">View history</Link><span className={`rounded-full px-3 py-1 text-sm font-medium ${statusColor(invoice.status)}`}>{invoice.status.replace('_', ' ')}</span></div>
       </div>
 
       {/* Invoice Summary */}

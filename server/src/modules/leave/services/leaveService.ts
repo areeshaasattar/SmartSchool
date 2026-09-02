@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { LeaveRequest, ILeaveRequest } from '../models/LeaveRequest.js'
 import { Guardian } from '../../students/models/Guardian.js'
 import { dispatchNotification } from '../../notifications/services/notificationService.js'
-import { AuditLog } from '../../audit/models/AuditLog.js'
+import { writeAuditLog } from '../../audit/models/AuditLog.js'
 
 // ── Create leave request ─────────────────────────────────────────────
 
@@ -197,12 +197,12 @@ export async function reviewLeaveRequest(
   await leave.save()
 
   // Audit log
-  await AuditLog.create({
-    schoolId: new mongoose.Types.ObjectId(schoolId),
-    actorId: new mongoose.Types.ObjectId(reviewerId),
+  await writeAuditLog({
+    schoolId,
+    actorId: reviewerId,
     action: `leave:${status}`,
     entity: 'LeaveRequest',
-    entityId: leave._id,
+    entityId: leave._id.toString(),
     after: { status, reviewComment },
   })
 

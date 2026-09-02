@@ -128,12 +128,14 @@ export async function markAttendance(
   actorEmail = 'system',
 ) {
   const classId = input.classId
-  const date = new Date(input.date)
+  // Attendance is a school-calendar value, not a UTC timestamp. Parsing a
+  // YYYY-MM-DD string directly shifts the calendar day in timezones east of UTC.
+  const date = new Date(`${input.date}T00:00:00`)
 
   // Reject future dates
   const today = new Date()
-  today.setHours(23, 59, 59, 999)
-  if (date > today) {
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  if (input.date > todayKey) {
     throw new Error('Cannot mark attendance for a future date')
   }
 
