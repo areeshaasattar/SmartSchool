@@ -13,11 +13,18 @@ export interface ISchoolBranding {
   primaryColor?: string
 }
 
+export interface IGradeRange {
+  minPercent: number
+  maxPercent: number
+  grade: string
+}
+
 export interface ISchoolSettings {
   timezone: string
   locale: string
   academicWeekStart: number // 0 = Sunday … 6 = Saturday
   gradingScale: string
+  gradingScaleRanges: IGradeRange[]
   contact: ISchoolContact
   branding: ISchoolBranding
   attendanceAlertThreshold: number // percentage below which a parent alert fires
@@ -75,6 +82,21 @@ const schoolSettingsSchema = new Schema<ISchoolSettings>(
     locale: { type: String, default: 'en', trim: true },
     academicWeekStart: { type: Number, default: 1, min: 0, max: 6 },
     gradingScale: { type: String, default: 'letter', trim: true },
+    gradingScaleRanges: {
+      type: [{
+        minPercent: { type: Number, required: true },
+        maxPercent: { type: Number, required: true },
+        grade: { type: String, required: true, trim: true },
+      }],
+      default: [
+        { minPercent: 90, maxPercent: 100, grade: 'A+' },
+        { minPercent: 80, maxPercent: 89, grade: 'A' },
+        { minPercent: 70, maxPercent: 79, grade: 'B+' },
+        { minPercent: 60, maxPercent: 69, grade: 'B' },
+        { minPercent: 50, maxPercent: 59, grade: 'C' },
+        { minPercent: 0, maxPercent: 49, grade: 'F' },
+      ],
+    },
     contact: { type: schoolContactSchema, default: () => ({}) },
     branding: { type: schoolBrandingSchema, default: () => ({}) },
     attendanceAlertThreshold: { type: Number, default: 75, min: 0, max: 100 },
