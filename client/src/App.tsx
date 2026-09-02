@@ -65,6 +65,15 @@ import LeaveReviewPage from './features/leave/pages/LeaveReviewPage'
 import DisciplineCreatePage from './features/discipline/pages/DisciplineCreatePage'
 import DisciplineListPage from './features/discipline/pages/DisciplineListPage'
 import DisciplineDetailPage from './features/discipline/pages/DisciplineDetailPage'
+import VehicleListPage from './features/transport/pages/VehicleListPage'
+import VehicleFormPage from './features/transport/pages/VehicleFormPage'
+import DriverListPage from './features/transport/pages/DriverListPage'
+import DriverFormPage from './features/transport/pages/DriverFormPage'
+import StopListPage from './features/transport/pages/StopListPage'
+import RouteListPage from './features/transport/pages/RouteListPage'
+import RouteDetailPage from './features/transport/pages/RouteDetailPage'
+import RouteFormPage from './features/transport/pages/RouteFormPage'
+import StudentTransportPage from './features/transport/pages/StudentTransportPage'
 import './index.css'
 
 function App() {
@@ -229,6 +238,25 @@ function App() {
               <Route path="/discipline" element={<DisciplineListPage />} />
               <Route path="/discipline/new" element={<DisciplineCreatePage />} />
               <Route path="/discipline/:id" element={<DisciplineDetailPage />} />
+            </Route>
+
+            {/* Transport — manager/admin */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'transport_manager']} />}>
+              <Route path="/transport/vehicles" element={<VehicleListPage />} />
+              <Route path="/transport/vehicles/new" element={<VehicleFormPage />} />
+              <Route path="/transport/vehicles/:id/edit" element={<VehicleFormPage />} />
+              <Route path="/transport/drivers" element={<DriverListPage />} />
+              <Route path="/transport/drivers/new" element={<DriverFormPage />} />
+              <Route path="/transport/drivers/:id/edit" element={<DriverFormPage />} />
+              <Route path="/transport/stops" element={<StopListPage />} />
+              <Route path="/transport/routes" element={<RouteListPage />} />
+              <Route path="/transport/routes/new" element={<RouteFormPage />} />
+              <Route path="/transport/routes/:id" element={<RouteDetailPage />} />
+            </Route>
+
+            {/* Transport — parent/student view */}
+            <Route element={<RequireRole roles={['parent', 'student']} />}>
+              <Route path="/my-transport" element={<StudentTransportPage />} />
             </Route>
 
             {/* Notifications — all authenticated users */}

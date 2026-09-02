@@ -59,8 +59,8 @@ export const permissionPolicy: Record<string, Permission> = {
   'finance:read': ['super_admin', 'school_admin', 'principal', 'accountant', 'parent', 'student'],
   'finance:manage': ['super_admin', 'school_admin', 'accountant'],
 
-  // ── Transport (stub — feature/transport) ──────────────────────────
-  'transport:read': ['super_admin', 'school_admin', 'transport_manager'],
+  // ── Transport ──────────────────────────────────────────────────
+  'transport:read': ['super_admin', 'school_admin', 'transport_manager', 'principal', 'teacher', 'student', 'parent'],
   'transport:manage': ['super_admin', 'school_admin', 'transport_manager'],
 
   // ── Classes ──────────────────────────────────────────────────────
