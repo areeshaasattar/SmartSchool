@@ -4,6 +4,7 @@ import { FeeInvoice, IFeeInvoice } from '../models/FeeInvoice.js'
 import { Payment, IPayment } from '../models/Payment.js'
 import { Student } from '../../students/models/Student.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
+import { dispatchNotification } from '../../notifications/services/notificationService.js'
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -442,9 +443,37 @@ export async function checkOverdueInvoices(schoolId: string) {
     }
   }
 
-  // TODO: Replace with BullMQ scheduled job once feature/redis-bullmq lands
-  if (updatedCount > 0) {
-    console.log(`[FEES] Overdue check: ${updatedCount} invoice(s) updated for school ${schoolId}`)
+  // TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
+  // Send fee reminders for newly overdue invoices
+  for (const invoice of invoices) {
+    if (invoice.status === 'overdue') {
+      try {
+        const student = await Student.findOne({ _id: invoice.studentId, schoolId })
+        const studentName = student ? `${student.profile.firstName} ${student.profile.lastName}` : 'your child'
+        // Notify guardians
+        try {
+          const { Guardian } = await import('../../students/models/Guardian.js')
+          const guardians = await Guardian.find({ schoolId, children: invoice.studentId })
+          for (const guardian of guardians) {
+            await dispatchNotification({
+              schoolId,
+              userId: (guardian.userId as unknown as mongoose.Types.ObjectId).toString(),
+              type: 'fee_reminder',
+              data: {
+                studentName,
+                status: 'overdue',
+                amount: String(invoice.balance),
+                dueDate: invoice.dueDate.toISOString().split('T')[0],
+              },
+            })
+          }
+        } catch {
+          // Guardian notification failure is non-blocking
+        }
+      } catch {
+        // Notification failure should not block fee processing
+      }
+    }
   }
 
   return { updatedCount }

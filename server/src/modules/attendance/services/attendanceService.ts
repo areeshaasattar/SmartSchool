@@ -4,6 +4,7 @@ import { Class } from '../../classes/models/Class.js'
 import { Student } from '../../students/models/Student.js'
 import { School } from '../../schools/models/School.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
+import { dispatchNotification } from '../../notifications/services/notificationService.js'
 
 // ── Helper ───────────────────────────────────────────────────────────
 
@@ -84,8 +85,28 @@ export async function checkAttendanceThreshold(
       triggeredAt: new Date(),
     }
 
-    // TODO: replace with BullMQ job dispatch once feature/redis-bullmq lands
-    console.log(`[ATTENDANCE ALERT] Student ${studentId} in class ${classId} has ${percentage}% attendance (threshold: ${threshold}%)`)
+    // TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
+    // Notify guardians of this student
+    try {
+      const { Guardian } = await import('../../students/models/Guardian.js')
+      const guardians = await Guardian.find({ schoolId, children: studentId })
+      for (const guardian of guardians) {
+        await dispatchNotification({
+          schoolId,
+          userId: (guardian.userId as unknown as import('mongoose').Types.ObjectId).toString(),
+          type: 'attendance_alert',
+          data: {
+            studentId,
+            classId,
+            percentage: String(percentage),
+            threshold: String(threshold),
+            studentName: studentId,
+          },
+        })
+      }
+    } catch {
+      // Notification failure should not block attendance logic
+    }
     return notification
   }
 

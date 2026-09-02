@@ -5,6 +5,7 @@ import { Student } from '../../students/models/Student.js'
 import { Class } from '../../classes/models/Class.js'
 import { School, IGradeRange } from '../../schools/models/School.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
+import { dispatchNotification } from '../../notifications/services/notificationService.js'
 
 // ── Helper ───────────────────────────────────────────────────────────
 
@@ -372,8 +373,36 @@ export async function publishExam(schoolId: string, examId: string, actorId: str
     after: toPlain(exam),
   })
 
-  // TODO: Replace with BullMQ job dispatch once feature/redis-bullmq lands
-  console.log(`[EXAM] Exam ${examId} published — report card generation stub triggered`)
+  // TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
+  // Notify students and guardians in the exam's classes
+  try {
+    for (const classId of exam.classIds) {
+      const students = await Student.find({ schoolId, classId, status: 'active' })
+      for (const student of students) {
+        // Notify guardians of this student
+        try {
+          const { Guardian } = await import('../../students/models/Guardian.js')
+          const guardians = await Guardian.find({ schoolId, children: student._id })
+          for (const guardian of guardians) {
+            await dispatchNotification({
+              schoolId,
+              userId: (guardian.userId as unknown as mongoose.Types.ObjectId).toString(),
+              type: 'exam_published',
+              data: {
+                examName: exam.name,
+                term: exam.term,
+                recipientName: `${student.profile.firstName} ${student.profile.lastName}`,
+              },
+            })
+          }
+        } catch {
+          // Guardian notification failure is non-blocking
+        }
+      }
+    }
+  } catch {
+    // Notification failure should not block exam publish
+  }
 
   return exam
 }

@@ -35,6 +35,16 @@ jest.mock('../../src/modules/audit/models/AuditLog.js', () => ({
   writeAuditLog: jest.fn().mockResolvedValue(undefined),
 }))
 
+jest.mock('../../src/modules/notifications/services/notificationService.js', () => ({
+  dispatchNotification: jest.fn().mockResolvedValue(undefined),
+}))
+
+jest.mock('../../src/modules/students/models/Guardian.js', () => ({
+  Guardian: {
+    find: jest.fn().mockResolvedValue([]),
+  },
+}))
+
 // ── Spy on model methods
 jest.spyOn(Class, 'findOne')
 jest.spyOn(Student, 'findOne')

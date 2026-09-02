@@ -4,6 +4,7 @@ import { Submission, ISubmission } from '../models/Submission.js'
 import { Class } from '../../classes/models/Class.js'
 import { Student } from '../../students/models/Student.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
+import { dispatchNotification } from '../../notifications/services/notificationService.js'
 
 // ── Helper ───────────────────────────────────────────────────────────
 
@@ -310,6 +311,27 @@ export async function gradeSubmission(
     before,
     after: toPlain(submission),
   })
+
+  // TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
+  // Notify guardians of grading
+  try {
+    const { Guardian } = await import('../../students/models/Guardian.js')
+    const guardians = await Guardian.find({ schoolId, children: studentId })
+    for (const guardian of guardians) {
+      await dispatchNotification({
+        schoolId,
+        userId: (guardian.userId as unknown as mongoose.Types.ObjectId).toString(),
+        type: 'assignment_graded',
+        data: {
+          assignmentTitle: assignment.title,
+          marks: String(input.marks),
+          maxMarks: String(assignment.maxMarks),
+        },
+      })
+    }
+  } catch {
+    // Notification failure should not block grading
+  }
 
   return submission
 }
