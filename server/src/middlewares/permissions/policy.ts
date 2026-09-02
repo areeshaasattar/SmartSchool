@@ -31,11 +31,11 @@ export const permissionPolicy: Record<string, Permission> = {
   // ── Auth (existing) ───────────────────────────────────────────────
   'auth:me': ['super_admin', 'school_admin', 'principal', 'teacher', 'student', 'parent', 'accountant', 'hr', 'transport_manager'],
 
-  // ── Students (stub — feature/students) ─────────────────────────────
-  'student:list': ['super_admin', 'school_admin', 'principal', 'teacher'],
+  // ── Students ───────────────────────────────────────────────────────
+  'student:list': ['super_admin', 'school_admin', 'principal', 'teacher', 'parent'],
   'student:read': ['super_admin', 'school_admin', 'principal', 'teacher', 'parent'],
   'student:create': ['super_admin', 'school_admin', 'principal'],
-  'student:update': ['super_admin', 'school_admin', 'principal', 'teacher'],
+  'student:update': ['super_admin', 'school_admin', 'principal'],
   'student:delete': ['super_admin', 'school_admin'],
 
   // ── Attendance (stub — feature/attendance) ─────────────────────────
