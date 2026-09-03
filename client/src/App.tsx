@@ -80,6 +80,7 @@ import AccountantDashboard from './features/analytics/pages/AccountantDashboard'
 import StudentDashboard from './features/analytics/pages/StudentDashboard'
 import AuditLogsPage from './features/audit/pages/AuditLogsPage'
 import AuditLogDetailPage from './features/audit/pages/AuditLogDetailPage'
+import AIAssistantPage from './features/ai/pages/AIAssistantPage'
 import './index.css'
 
 function App() {
@@ -289,6 +290,7 @@ function App() {
             {/* Notifications — all authenticated users */}
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
+            <Route path="/ai" element={<AIAssistantPage />} />
           </Route>
 
           {/* Default redirect */}
