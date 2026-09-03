@@ -5,6 +5,7 @@ import { Student } from '../../students/models/Student.js'
 import { School } from '../../schools/models/School.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
 import { dispatchNotification } from '../../notifications/services/notificationService.js'
+import { attendanceAlertsQueue } from '../../../queues/index.js'
 
 // ── Helper ───────────────────────────────────────────────────────────
 
@@ -85,7 +86,6 @@ export async function checkAttendanceThreshold(
       triggeredAt: new Date(),
     }
 
-    // TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
     // Notify guardians of this student
     try {
       const { Guardian } = await import('../../students/models/Guardian.js')
@@ -178,8 +178,7 @@ export async function markAttendance(
 
     // Check threshold for absent records
     if (record.status === 'absent') {
-      const alert = await checkAttendanceThreshold(schoolId, record.studentId, classId)
-      if (alert) alerts.push(alert)
+      await attendanceAlertsQueue.add('check-threshold', { schoolId, studentId: record.studentId, classId })
     }
   }
 

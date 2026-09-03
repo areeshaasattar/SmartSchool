@@ -7,6 +7,7 @@ import { sendPush } from '../../../shared/notifications/senders/push.js'
 import { sendSms } from '../../../shared/notifications/senders/sms.js'
 import { getIO } from '../../../shared/socket.js'
 import { User } from '../../auth/models/User.js'
+import { notificationsQueue } from '../../../queues/index.js'
 
 // ── Template interpolation ───────────────────────────────────────────
 
@@ -87,13 +88,17 @@ export interface DispatchNotificationInput {
 }
 
 /**
- * Dispatch a notification to a user across all enabled channels.
+ * Queue a notification for retryable background delivery.
  * Creates Notification records per channel, emits socket for in_app,
  * and calls stub senders for email/push/sms.
  *
- * TODO(feature/redis-bullmq): move this dispatch call onto a queue for async/retryable delivery
  */
 export async function dispatchNotification(input: DispatchNotificationInput): Promise<void> {
+  await notificationsQueue.add('dispatch', input)
+}
+
+/** Executes inside the notifications worker. */
+export async function processNotification(input: DispatchNotificationInput): Promise<void> {
   const { schoolId, userId, type, data } = input
 
   // 1. Resolve user for email/phone
