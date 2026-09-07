@@ -1,8 +1,11 @@
 from app.schemas.ai import AIRequestContext, AIResponse
+from app.services.rag_service import answer_grounded_query
 
 
-def process_request(context: AIRequestContext) -> AIResponse:
+async def process_request(context: AIRequestContext) -> AIResponse:
     """Return the stable pre-AI response contract for downstream integrations."""
+    if context.requestType in {"school_policy_query", "parent_academic_query"}:
+        return await answer_grounded_query(context)
     return AIResponse(
         requestType=context.requestType,
         result={

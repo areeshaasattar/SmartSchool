@@ -12,4 +12,4 @@ async def process_ai_request(
     context: AIRequestContext,
     _: None = Depends(require_service_key),
 ) -> AIResponse:
-    return process_request(context)
+    return await process_request(context)
