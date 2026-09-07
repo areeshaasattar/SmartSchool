@@ -13,4 +13,5 @@ export const attendanceAlertsQueue = new Queue('attendance-alerts-queue', { conn
 export const feeRemindersQueue = new Queue('fee-reminders-queue', { connection, defaultJobOptions })
 export const pdfGenerationQueue = new Queue('pdf-generation-queue', { connection, defaultJobOptions })
 export const importProcessingQueue = new Queue('import-processing-queue', { connection, defaultJobOptions })
+export const aiIndexingQueue = new Queue('ai-indexing-queue', { connection, defaultJobOptions })
 export { connection as queueConnection }

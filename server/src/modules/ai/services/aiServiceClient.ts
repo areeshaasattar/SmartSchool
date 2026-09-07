@@ -21,6 +21,18 @@ export class AIServiceClientError extends Error {
 }
 
 export async function processAIRequest(context: AIRequestContext): Promise<AIResponse> {
+  return callAIService('/ai/process', context)
+}
+
+export async function indexKnowledgeDocument(document: { documentId: string; schoolId: string; sourceType: string; title: string; content: string; ownerId?: string }): Promise<void> {
+  await callAIService('/ai/index', document)
+}
+
+export async function deindexKnowledgeDocument(documentId: string, schoolId: string): Promise<void> {
+  await callAIService('/ai/deindex', { documentId, schoolId })
+}
+
+async function callAIService<T>(path: string, body: unknown): Promise<T> {
   const serviceUrl = process.env.AI_SERVICE_URL
   const serviceKey = process.env.AI_SERVICE_KEY
 
@@ -30,10 +42,10 @@ export async function processAIRequest(context: AIRequestContext): Promise<AIRes
 
   let response: Response
   try {
-    response = await fetch(`${serviceUrl.replace(/\/$/, '')}/ai/process`, {
+    response = await fetch(`${serviceUrl.replace(/\/$/, '')}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Service-Key': serviceKey },
-      body: JSON.stringify(context),
+      body: JSON.stringify(body),
     })
   } catch {
     throw new AIServiceClientError('AI service is unavailable')
@@ -43,5 +55,5 @@ export async function processAIRequest(context: AIRequestContext): Promise<AIRes
     throw new AIServiceClientError('AI service rejected the request')
   }
 
-  return response.json() as Promise<AIResponse>
+  return response.json() as Promise<T>
 }
