@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { z } from 'zod'
 import { useGenerateQuizMutation } from '../api/teacherToolsApi'
 import type { RootState } from '../../../../store'
+import { ROLE_GUARDS_ENABLED } from '../../../../app/accessControl'
 import api from '../../../../services/api'
 import type { Difficulty, QuestionType } from '../api/teacherToolsApi'
 
@@ -111,7 +112,8 @@ export default function GenerateQuizPage() {
     }
   }
 
-  if (!user || !user.roles.includes('teacher') && !user.roles.includes('school_admin')) {
+  // Role guard bypassed in development (see app/accessControl.ts)
+  if (ROLE_GUARDS_ENABLED && (!user || (!user.roles.includes('teacher') && !user.roles.includes('school_admin')))) {
     return <div className="rounded-xl bg-white p-6 text-secondary-600 shadow-sm">Access denied.</div>
   }
 

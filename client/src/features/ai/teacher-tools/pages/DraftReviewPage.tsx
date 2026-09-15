@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { ROLE_GUARDS_ENABLED } from '../../../../app/accessControl'
 import { z } from 'zod'
 import {
   useGetDraftQuery,
@@ -93,7 +94,8 @@ export default function DraftReviewPage() {
     }
   }, [draft])
 
-  if (!user || (!user.roles.includes('teacher') && !user.roles.includes('school_admin'))) {
+  // Role guard bypassed in development (see app/accessControl.ts)
+  if (ROLE_GUARDS_ENABLED && (!user || (!user.roles.includes('teacher') && !user.roles.includes('school_admin')))) {
     return <div className="rounded-xl bg-white p-6 text-secondary-600 shadow-sm">Access denied.</div>
   }
 
