@@ -3,6 +3,7 @@ import { Notification } from '../../src/modules/notifications/models/Notificatio
 import { NotificationTemplate } from '../../src/modules/notifications/models/NotificationTemplate.js'
 import { NotificationPreference } from '../../src/modules/notifications/models/NotificationPreference.js'
 import * as notificationService from '../../src/modules/notifications/services/notificationService.js'
+import { notificationsQueue } from '../../src/queues/index.js'
 
 // ── Mocks ────────────────────────────────────────────────────────────
 
@@ -35,6 +36,16 @@ jest.mock('../../src/modules/audit/models/AuditLog.js', () => ({
 
 jest.mock('../../src/shared/socket.js', () => ({
   getIO: jest.fn().mockReturnValue(null),
+}))
+
+// Mock BullMQ queues so tests never attempt real Redis connections
+jest.mock('../../src/queues/index.js', () => ({
+  notificationsQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  attendanceAlertsQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  feeRemindersQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  pdfGenerationQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  importProcessingQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  aiIndexingQueue: { add: jest.fn().mockResolvedValue(undefined) },
 }))
 
 jest.mock('../../src/shared/notifications/senders/email.js', () => ({
@@ -189,6 +200,21 @@ describe('Notification Service', () => {
   })
 
   describe('dispatchNotification', () => {
+    it('enqueues the notification job', async () => {
+      const input = {
+        schoolId,
+        userId,
+        type: 'fee_reminder',
+        data: { studentName: 'John', status: 'due', amount: '100' },
+      }
+
+      await notificationService.dispatchNotification(input)
+
+      expect(notificationsQueue.add).toHaveBeenCalledWith('dispatch', input)
+    })
+  })
+
+  describe('processNotification', () => {
     it('creates notification records for enabled channels', async () => {
       const { User } = require('../../src/modules/auth/models/User.js')
       User._mockSelect.mockResolvedValue({
@@ -204,7 +230,7 @@ describe('Notification Service', () => {
         Promise.resolve({ ...data, _id: new mongoose.Types.ObjectId(), save: jest.fn() })
       )
 
-      await notificationService.dispatchNotification({
+      await notificationService.processNotification({
         schoolId,
         userId,
         type: 'attendance_alert',
@@ -229,7 +255,7 @@ describe('Notification Service', () => {
         Promise.resolve({ ...data, _id: new mongoose.Types.ObjectId(), save: jest.fn() })
       )
 
-      await notificationService.dispatchNotification({
+      await notificationService.processNotification({
         schoolId,
         userId,
         type: 'message_received',
@@ -248,7 +274,7 @@ describe('Notification Service', () => {
 
       // Should not throw
       await expect(
-        notificationService.dispatchNotification({
+        notificationService.processNotification({
           schoolId,
           userId,
           type: 'attendance_alert',

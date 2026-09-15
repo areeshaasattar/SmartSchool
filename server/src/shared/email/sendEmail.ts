@@ -1,9 +1,33 @@
+import nodemailer from 'nodemailer'
+import type { Transporter } from 'nodemailer'
 import { Resend } from 'resend'
 
-// Lazy singleton — Resend is created on first use so that process.env
-// is read *after* dotenv.config() has run (ES module imports are hoisted
-// before the calling module's top-level code executes).
+// Lazy singletons — created on first use so that process.env is read *after*
+// dotenv.config() has run (ES module imports are hoisted before the calling
+// module's top-level code executes).
+let brevoTransporter: Transporter | null = null
 let resend: Resend | null = null
+
+function getBrevoTransporter(): Transporter | null {
+  if (brevoTransporter) return brevoTransporter
+
+  const host = process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com'
+  const port = Number(process.env.BREVO_SMTP_PORT || '587')
+  const user = process.env.BREVO_SMTP_USER
+  const pass = process.env.BREVO_SMTP_PASS
+
+  if (!user || !pass) {
+    return null
+  }
+
+  brevoTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  })
+  return brevoTransporter
+}
 
 function getResendClient(): Resend | null {
   if (resend) return resend
@@ -25,31 +49,52 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
   const emailFrom = process.env.EMAIL_FROM || 'noreply@smartschool.com'
-  const client = getResendClient()
+  const transporter = getBrevoTransporter()
 
-  if (!client) {
-    console.warn(`📧 [EMAIL SKIPPED] RESEND_API_KEY not set. Would send to: ${options.to}, subject: ${options.subject}`)
-    return
-  }
-
-  try {
-    const { error } = await client.emails.send({
-      from: emailFrom,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    })
-
-    if (error) {
-      console.error('📧 [EMAIL ERROR] Resend failed:', error.message)
-      throw new Error(`Failed to send email: ${error.message}`)
+  if (transporter) {
+    try {
+      const info = await transporter.sendMail({
+        from: emailFrom,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+      })
+      console.log(`📧 [EMAIL SENT via Brevo SMTP] To: ${options.to}, Subject: ${options.subject}, MessageId: ${info.messageId}`)
+      return
+    } catch (error) {
+      console.error('📧 [EMAIL ERROR] Brevo SMTP failed:', error instanceof Error ? error.message : error)
+      // Fall through to Resend fallback below.
     }
-
-    console.log(`📧 [EMAIL SENT] To: ${options.to}, Subject: ${options.subject}`)
-  } catch (error) {
-    console.error('📧 [EMAIL ERROR] Failed to send email:', error instanceof Error ? error.message : error)
-    throw error
+  } else {
+    console.warn('📧 [EMAIL] BREVO_SMTP_USER/BREVO_SMTP_PASS not set — Brevo SMTP disabled')
   }
+
+  const client = getResendClient()
+  if (client) {
+    try {
+      const { error } = await client.emails.send({
+        from: emailFrom,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+      })
+
+      if (error) {
+        console.error('📧 [EMAIL ERROR] Resend failed:', error.message)
+        throw new Error(`Failed to send email: ${error.message}`)
+      }
+
+      console.log(`📧 [EMAIL SENT via Resend] To: ${options.to}, Subject: ${options.subject}`)
+      return
+    } catch (error) {
+      console.error('📧 [EMAIL ERROR] Failed to send email:', error instanceof Error ? error.message : error)
+      throw error
+    }
+  }
+
+  console.warn(
+    `📧 [EMAIL SKIPPED] No email provider configured (set BREVO_SMTP_USER/BREVO_SMTP_PASS or RESEND_API_KEY). Would send to: ${options.to}, subject: ${options.subject}`
+  )
 }
 
 export function buildVerificationEmail(verificationUrl: string): { subject: string; html: string } {

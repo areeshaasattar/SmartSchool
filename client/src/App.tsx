@@ -81,6 +81,11 @@ import StudentDashboard from './features/analytics/pages/StudentDashboard'
 import AuditLogsPage from './features/audit/pages/AuditLogsPage'
 import AuditLogDetailPage from './features/audit/pages/AuditLogDetailPage'
 import AIAssistantPage from './features/ai/pages/AIAssistantPage'
+import TeacherToolsLayout from './features/ai/teacher-tools/pages/TeacherToolsLayout'
+import TeacherToolsIndexPage from './features/ai/teacher-tools/pages/TeacherToolsIndexPage'
+import GenerateQuizPage from './features/ai/teacher-tools/pages/GenerateQuizPage'
+import DraftHistoryPage from './features/ai/teacher-tools/pages/DraftHistoryPage'
+import DraftReviewPage from './features/ai/teacher-tools/pages/DraftReviewPage'
 import './index.css'
 
 function App() {
@@ -291,6 +296,14 @@ function App() {
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
             <Route path="/ai" element={<AIAssistantPage />} />
+            <Route element={<RequireRole roles={['teacher', 'school_admin']} />}>
+              <Route path="/ai/teacher-tools" element={<TeacherToolsLayout />}>
+                <Route index element={<TeacherToolsIndexPage />} />
+                <Route path="generate" element={<GenerateQuizPage />} />
+                <Route path="drafts" element={<DraftHistoryPage />} />
+                <Route path="drafts/:id/review" element={<DraftReviewPage />} />
+              </Route>
+            </Route>
           </Route>
 
           {/* Default redirect */}

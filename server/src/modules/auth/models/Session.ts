@@ -39,7 +39,6 @@ const sessionSchema = new Schema<ISession>(
   },
 )
 
-sessionSchema.index({ refreshToken: 1 })
 sessionSchema.index({ userId: 1, expiresAt: 1 })
 
 export const Session = mongoose.model<ISession>('Session', sessionSchema)
