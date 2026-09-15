@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import mongoose from 'mongoose'
 import { createServer } from 'http'
 import { connectDatabase } from './config/database.js'
 import { getRedisClient } from './shared/redis.js'
@@ -31,6 +32,18 @@ app.use('/api', routes)
 
 // Error handling middleware
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err instanceof mongoose.Error.ValidationError) {
+    const details = Object.fromEntries(
+      Object.entries(err.errors).map(([field, validationError]) => [field, validationError.message]),
+    )
+
+    res.status(400).json({
+      error: 'Validation failed',
+      details,
+    })
+    return
+  }
+
   console.error('Unhandled error:', err)
   res.status(500).json({ error: 'Internal server error' })
 })

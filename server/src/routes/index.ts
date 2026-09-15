@@ -22,6 +22,7 @@ import documentRoutes from '../modules/documents/routes/documentRoutes.js'
 import analyticsRoutes from '../modules/analytics/routes/analyticsRoutes.js'
 import auditRoutes from '../modules/audit/routes/auditRoutes.js'
 import aiRoutes from '../modules/ai/routes/aiRoutes.js'
+import teacherToolsRoutes from '../modules/ai/teacher-tools/routes/draftRoutes.js'
 
 const router = Router()
 
@@ -48,5 +49,6 @@ router.use('/documents', documentRoutes)
 router.use('/analytics', analyticsRoutes)
 router.use('/audit', auditRoutes)
 router.use('/ai', aiRoutes)
+router.use('/ai/teacher-tools', teacherToolsRoutes)
 
 export default router

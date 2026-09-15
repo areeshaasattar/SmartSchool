@@ -1,6 +1,7 @@
 import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { setAccessToken, setActiveSchoolId } from '../services/api'
 import { auditApi } from '../features/audit/services/auditApi'
+import { teacherToolsApi } from '../features/ai/teacher-tools/api/teacherToolsApi'
 
 export interface UserProfile {
   firstName: string
@@ -130,8 +131,9 @@ export const store = configureStore({
     tenant: tenantSlice.reducer,
     parentPortal: parentPortalSlice.reducer,
     [auditApi.reducerPath]: auditApi.reducer,
+    [teacherToolsApi.reducerPath]: teacherToolsApi.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(auditApi.middleware),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(auditApi.middleware, teacherToolsApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>

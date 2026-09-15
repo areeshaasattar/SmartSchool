@@ -233,11 +233,17 @@ export async function requestPasswordReset(email: string): Promise<void> {
 
   const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${token}`
   const emailContent = buildPasswordResetEmail(resetUrl)
-  await sendEmail({
-    to: user.email,
-    subject: emailContent.subject,
-    html: emailContent.html,
-  })
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: emailContent.subject,
+      html: emailContent.html,
+    })
+  } catch (error) {
+    // Token is already saved — log the delivery failure but don't fail the request
+    // (also keeps the generic 'if your email is registered' response truthful).
+    console.error('[passwordReset] Failed to send reset email:', error instanceof Error ? error.message : error)
+  }
 }
 
 export async function confirmPasswordReset(token: string, newPassword: string): Promise<void> {

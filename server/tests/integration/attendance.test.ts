@@ -45,6 +45,16 @@ jest.mock('../../src/modules/students/models/Guardian.js', () => ({
   },
 }))
 
+// Mock BullMQ queues so tests never attempt real Redis connections
+jest.mock('../../src/queues/index.js', () => ({
+  notificationsQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  attendanceAlertsQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  feeRemindersQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  pdfGenerationQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  importProcessingQueue: { add: jest.fn().mockResolvedValue(undefined) },
+  aiIndexingQueue: { add: jest.fn().mockResolvedValue(undefined) },
+}))
+
 // ── Spy on model methods
 jest.spyOn(Class, 'findOne')
 jest.spyOn(Student, 'findOne')

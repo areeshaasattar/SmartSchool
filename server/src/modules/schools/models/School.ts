@@ -162,7 +162,6 @@ const schoolSchema = new Schema<ISchool>(
   },
 )
 
-schoolSchema.index({ code: 1 })
 schoolSchema.index({ status: 1 })
 
 export const School = mongoose.model<ISchool>('School', schoolSchema)
