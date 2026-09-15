@@ -33,7 +33,7 @@ export async function getSchoolAdminOverview(schoolId: string) {
 
   const [studentCount, teacherCount, attendanceToday, feeReport, pendingLeave] = await Promise.all([
     Student.countDocuments({ schoolId, status: 'active' }),
-    Teacher.countDocuments({ schoolId, status: 'active' }),
+    Teacher.countDocuments({ schoolId, 'employment.status': 'active' }),
     // Today's attendance: count present vs total
     (async () => {
       const classes = await (await import('../../classes/models/Class.js')).Class.find({ schoolId }).select('_id')
@@ -146,7 +146,7 @@ export async function getPrincipalOverview(schoolId: string) {
     })(),
 
     // Teacher workload: class/subject count per teacher
-    Teacher.find({ schoolId, status: 'active' })
+    Teacher.find({ schoolId, 'employment.status': 'active' })
       .select('profile.firstName profile.lastName classes subjects departments')
       .then(teachers => teachers.map(t => ({
         teacherId: (t._id as mongoose.Types.ObjectId).toString(),
