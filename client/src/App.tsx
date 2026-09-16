@@ -86,6 +86,7 @@ import TeacherToolsIndexPage from './features/ai/teacher-tools/pages/TeacherTool
 import GenerateQuizPage from './features/ai/teacher-tools/pages/GenerateQuizPage'
 import DraftHistoryPage from './features/ai/teacher-tools/pages/DraftHistoryPage'
 import DraftReviewPage from './features/ai/teacher-tools/pages/DraftReviewPage'
+import InsightsPage from './features/ai/insights/pages/InsightsPage'
 import './index.css'
 
 function App() {
@@ -303,6 +304,14 @@ function App() {
                 <Route path="drafts" element={<DraftHistoryPage />} />
                 <Route path="drafts/:id/review" element={<DraftReviewPage />} />
               </Route>
+            </Route>
+
+            {/* AI Insights — principal/school_admin get all types; teacher scoped to own classes */}
+            <Route element={<RequireRole roles={['super_admin', 'school_admin', 'principal']} />}>
+              <Route path="/ai/insights" element={<InsightsPage />} />
+            </Route>
+            <Route element={<RequireRole roles={['teacher']} />}>
+              <Route path="/ai/insights" element={<InsightsPage allowedTypes={['academic', 'attendance']} title="My Class Insights" />} />
             </Route>
           </Route>
 

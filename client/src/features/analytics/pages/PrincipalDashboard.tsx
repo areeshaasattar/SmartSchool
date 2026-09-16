@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import api from '../../../services/api'
+import AIInsightCard from '../../ai/insights/components/AIInsightCard'
+import { useListInsightsQuery } from '../../ai/insights/api/insightsApi'
 
 interface ClassPerformance {
   classId: string
@@ -37,6 +39,7 @@ const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6']
 export default function PrincipalDashboard() {
   const [data, setData] = useState<OverviewData | null>(null)
   const [loading, setLoading] = useState(true)
+  const { data: insightsData } = useListInsightsQuery({ limit: 5 })
 
   useEffect(() => {
     api.get('/analytics/principal/overview')
@@ -199,6 +202,13 @@ export default function PrincipalDashboard() {
           </div>
         )}
       </div>
+
+      {/* AI Insights — aggregated summaries, human-in-the-loop */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <AIInsightCard type="academic" insights={(insightsData?.insights ?? []).filter((i) => i.type === 'academic')} />
+        <AIInsightCard type="attendance" insights={(insightsData?.insights ?? []).filter((i) => i.type === 'attendance')} />
+      </div>
+      <AIInsightCard type="briefing" insights={(insightsData?.insights ?? []).filter((i) => i.type === 'briefing')} />
     </div>
   )
 }

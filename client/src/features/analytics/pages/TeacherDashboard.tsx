@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../../../services/api'
+import AIInsightCard from '../../ai/insights/components/AIInsightCard'
+import { useListInsightsQuery } from '../../ai/insights/api/insightsApi'
 
 interface TimetableSlot {
   _id: string
@@ -20,6 +22,7 @@ interface OverviewData {
 export default function TeacherDashboard() {
   const [data, setData] = useState<OverviewData | null>(null)
   const [loading, setLoading] = useState(true)
+  const { data: insightsData } = useListInsightsQuery({ limit: 5 })
 
   useEffect(() => {
     api.get('/analytics/teacher/overview')
@@ -103,6 +106,12 @@ export default function TeacherDashboard() {
             <span className="text-3xl">✉️</span>
           </div>
         </Link>
+      </div>
+
+      {/* AI Insights — scoped server-side to this teacher's own classes */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <AIInsightCard type="academic" insights={(insightsData?.insights ?? []).filter((i) => i.type === 'academic')} />
+        <AIInsightCard type="attendance" insights={(insightsData?.insights ?? []).filter((i) => i.type === 'attendance')} />
       </div>
     </div>
   )
