@@ -44,6 +44,10 @@ export const passwordResetConfirmSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number'),
 })
 
+export const logoutSchema = z.object({
+  refreshToken: z.string().uuid('Invalid refresh token format'),
+})
+
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type RefreshInput = z.infer<typeof refreshSchema>

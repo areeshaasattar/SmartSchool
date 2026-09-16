@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { verifyAccessToken, AccessTokenPayload } from '../../shared/tokens.js'
+import { verifyAccessToken, AccessTokenPayload, isAccessTokenStale } from '../../shared/tokens.js'
 import { User, IUser } from '../../modules/auth/models/User.js'
 
 declare global {
@@ -38,6 +38,14 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
     if (user.status !== 'active') {
       res.status(401).json({ error: 'Account is not active' })
+      return
+    }
+
+    // Immediate invalidation: a password change bumps tokenVersion/passwordChangedAt,
+    // so access tokens issued before it are rejected for the remainder of their TTL
+    // (not just at the next refresh).
+    if (isAccessTokenStale(payload, user)) {
+      res.status(401).json({ error: 'Session invalidated — please sign in again' })
       return
     }
 

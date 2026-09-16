@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Pre-commit hook: block obvious secrets from being committed.
+# Installed via husky; add more patterns to the PATTERNS list as needed.
+
+PATTERNS=(
+  'AKIA[0-9A-Z]{16}'                       # AWS access key id
+  '-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----'
+  'xox[baprs]-[A-Za-z0-9-]{10,}'           # Slack tokens
+  'sk-[A-Za-z0-9]{20,}'                    # OpenAI-style secret keys
+  'ghp_[A-Za-z0-9]{36}'                    # GitHub PATs
+  'AIza[0-9A-Za-z_-]{35}'                  # Google API keys
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+'  # signed JWTs
+)
+
+EXIT=0
+
+for f in $(git diff --cached --name-only); do
+  # Never scan or block these
+  case "$f" in
+    package-lock.json|*.lock|.env.example) continue ;;
+  esac
+
+  # Block any .env file (but not .env.example, handled above)
+  case "$f" in
+    *.env|.env.*|.env)
+      echo "✖ Blocked: committing env file '$f' is not allowed (use .env.example as template)"
+      EXIT=1
+      continue
+      ;;
+  esac
+
+  for pat in "${PATTERNS[@]}"; do
+    if git diff --cached -U0 -- "$f" | grep -E "^\+" | grep -Eq "$pat"; then
+      echo "✖ Blocked: staged file '$f' matches secret pattern: $pat"
+      EXIT=1
+    fi
+  done
+done
+
+if [ "$EXIT" -ne 0 ]; then
+  echo ""
+  echo "Commit rejected by secret scanner. If this is a false positive,"
+  echo "rephrase the content or contact the maintainers."
+fi
+
+exit $EXIT

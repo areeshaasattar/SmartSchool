@@ -8,6 +8,10 @@ import {
   AccessTokenPayload,
 } from '../../../shared/tokens.js'
 import {
+  notifyLoginFailure,
+  notifyLoginSuccess,
+} from '../../../middlewares/auth/loginLockout.js'
+import {
   generateEmailVerificationToken,
   generatePasswordResetToken,
 } from '../../../shared/emailVerification.js'
@@ -22,6 +26,34 @@ interface AuthResult {
   user: IUser
   accessToken: string
   refreshToken: string
+}
+
+// ── Refresh token hashing ────────────────────────────────────────────
+/**
+ * Refresh tokens are stored HASHED (sha-256) — a database dump must not yield
+ * usable session tokens. Lookup is by hash; the raw token only ever exists in
+ * the HTTP response and in the caller's memory.
+ *
+ * LEGACY MIGRATION NOTE: sessions created before this change stored the raw
+ * UUID in `refreshToken`. `migrateLegacySessions()` re-hashes those rows on
+ * first boot after deploy; it is idempotent and safe to remove afterwards.
+ */
+import { createHash } from 'crypto'
+
+function hashRefreshToken(raw: string): string {
+  return createHash('sha256').update(raw).digest('hex')
+}
+
+/** One-time helper: re-hash any plaintext refresh tokens from before the migration. */
+export async function migrateLegacySessions(): Promise<{ migrated: number }> {
+  const legacy = await Session.find({
+    refreshToken: { $regex: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i },
+  })
+  for (const session of legacy) {
+    session.refreshToken = hashRefreshToken(session.refreshToken)
+    await session.save()
+  }
+  return { migrated: legacy.length }
 }
 
 export async function register(
@@ -57,13 +89,13 @@ export async function register(
     emailVerificationExpires: verificationExpires,
   })
 
-  // Create session with refresh token
+  // Create session with refresh token (stored hashed)
   const refreshToken = generateRefreshToken()
   const expiresAt = getRefreshTokenExpiry()
 
   await Session.create({
     userId: user._id,
-    refreshToken,
+    refreshToken: hashRefreshToken(refreshToken),
     userAgent,
     ipAddress,
     expiresAt,
@@ -74,6 +106,8 @@ export async function register(
     userId: user._id.toString(),
     email: user.email,
     roles: user.roles,
+    tokenVersion: 0,
+    pwdChangedAt: 0,
   }
   const accessToken = generateAccessToken(accessTokenPayload)
 
@@ -94,15 +128,17 @@ export async function login(
   userAgent?: string,
   ipAddress?: string,
 ): Promise<AuthResult> {
-  // Find user
+  // Find user (lockout middleware has already run in the route)
   const user = await User.findOne({ email: input.email.toLowerCase() })
   if (!user) {
+    await notifyLoginFailure(input.email)
     throw new Error('Invalid email or password')
   }
 
   // Check password
   const isPasswordValid = await comparePassword(input.password, user.passwordHash)
   if (!isPasswordValid) {
+    await notifyLoginFailure(input.email)
     throw new Error('Invalid email or password')
   }
 
@@ -114,17 +150,18 @@ export async function login(
     throw new Error('Account has been disabled')
   }
 
-  // Update last login
+  // Update last login + reset the failure counter
   user.lastLogin = new Date()
   await user.save()
+  await notifyLoginSuccess(input.email)
 
-  // Create session with refresh token
+  // Create session with refresh token (stored hashed)
   const refreshToken = generateRefreshToken()
   const expiresAt = getRefreshTokenExpiry()
 
   await Session.create({
     userId: user._id,
-    refreshToken,
+    refreshToken: hashRefreshToken(refreshToken),
     userAgent,
     ipAddress,
     expiresAt,
@@ -135,6 +172,8 @@ export async function login(
     userId: user._id.toString(),
     email: user.email,
     roles: user.roles,
+    tokenVersion: user.tokenVersion ?? 0,
+    pwdChangedAt: user.passwordChangedAt ? Math.floor(user.passwordChangedAt.getTime() / 1000) : 0,
   }
   const accessToken = generateAccessToken(accessTokenPayload)
 
@@ -142,8 +181,8 @@ export async function login(
 }
 
 export async function refresh(refreshToken: string): Promise<{ accessToken: string }> {
-  // Find session
-  const session = await Session.findOne({ refreshToken })
+  // Find session — lookup is by the HASHED value, never the raw token
+  const session = await Session.findOne({ refreshToken: hashRefreshToken(refreshToken) })
   if (!session) {
     throw new Error('Invalid refresh token')
   }
@@ -166,6 +205,8 @@ export async function refresh(refreshToken: string): Promise<{ accessToken: stri
     userId: user._id.toString(),
     email: user.email,
     roles: user.roles,
+    tokenVersion: user.tokenVersion ?? 0,
+    pwdChangedAt: user.passwordChangedAt ? Math.floor(user.passwordChangedAt.getTime() / 1000) : 0,
   }
   const accessToken = generateAccessToken(accessTokenPayload)
 
@@ -173,7 +214,7 @@ export async function refresh(refreshToken: string): Promise<{ accessToken: stri
 }
 
 export async function logout(refreshToken: string): Promise<void> {
-  await Session.deleteOne({ refreshToken })
+  await Session.deleteOne({ refreshToken: hashRefreshToken(refreshToken) })
 }
 
 export async function verifyEmail(token: string): Promise<void> {
@@ -259,9 +300,12 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
   user.passwordHash = await hashPassword(newPassword)
   user.passwordResetToken = undefined
   user.passwordResetExpires = undefined
+  user.passwordChangedAt = new Date()
+  user.tokenVersion = (user.tokenVersion ?? 0) + 1
   await user.save()
 
-  // Invalidate all sessions
+  // Invalidate all refresh sessions AND any access token minted before now
+  // (authenticate() checks tokenVersion/passwordChangedAt on every request).
   await Session.deleteMany({ userId: user._id })
 }
 

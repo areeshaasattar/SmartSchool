@@ -29,11 +29,14 @@ def test_process_rejects_malformed_context(monkeypatch):
     assert response.status_code == 422
 
 
-def test_process_returns_placeholder_response(monkeypatch):
+def test_process_requires_a_query_for_rag_request_types(monkeypatch):
+    """RAG-backed request types validate payload.query and fail with status=error
+    (not the old placeholder 'ok') when the query is missing or empty."""
     monkeypatch.setenv("AI_SERVICE_KEY", "test-service-key")
 
     response = client.post("/ai/process", headers={"X-Service-Key": "test-service-key"}, json=valid_context)
 
     assert response.status_code == 200
     assert response.json()["requestType"] == valid_context["requestType"]
-    assert response.json()["status"] == "ok"
+    assert response.json()["status"] == "error"
+    assert "query" in response.json()["result"]["answer"].lower()
