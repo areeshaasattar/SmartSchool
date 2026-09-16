@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { authenticate } from '../../../../middlewares/auth/authenticate.js'
 import { resolveTenant } from '../../../../middlewares/tenant/resolveTenant.js'
 import { requireRole } from '../../../../middlewares/permissions/requireRole.js'
+import { aiUserRateLimit } from '../../../../middlewares/validation/rateLimit.js'
 import { z } from 'zod'
 import * as draftService from '../services/draftService.js'
 import mongoose from 'mongoose'
@@ -22,7 +23,7 @@ const generateSchema = z.object({
   questionTypes: z.array(z.enum(['mcq', 'short_answer', 'essay'])).min(1),
 })
 
-router.post('/quiz/generate', async (req: Request, res: Response) => {
+router.post('/quiz/generate', aiUserRateLimit, async (req: Request, res: Response) => {
   try {
     const parsed = generateSchema.parse(req.body)
     const schoolId = req.tenantId!

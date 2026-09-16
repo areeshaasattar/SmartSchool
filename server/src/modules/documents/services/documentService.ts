@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { Document, IDocument } from '../models/Document.js'
 import { getStorageProvider } from '../../../shared/storage/storageProvider.js'
 import { validateFileType } from '../schemas/documentSchemas.js'
+import { validateServerSideUpload } from '../../../shared/storage/uploadValidation.js'
 import { writeAuditLog } from '../../audit/models/AuditLog.js'
 import { Student } from '../../students/models/Student.js'
 import { Teacher } from '../../teachers/models/Teacher.js'
@@ -88,10 +89,22 @@ export async function uploadDocument(
     accessPolicy?: string
   },
 ): Promise<IDocument> {
-  // Validate file type and size
+  // Validate file type and size (client-declared metadata)
   const typeValidation = validateFileType(file.originalname, file.mimetype, file.size)
   if (!typeValidation.valid) {
     throw new Error(typeValidation.error!)
+  }
+
+  // Server-side content validation: magic bytes must agree with the declared
+  // mime type — the multipart Content-Type header alone is spoofable.
+  const contentValidation = validateServerSideUpload(
+    file.mimetype,
+    file.originalname,
+    file.size,
+    file.buffer,
+  )
+  if (!contentValidation.valid) {
+    throw new Error(contentValidation.error!)
   }
 
   // Enforce per-type size limits

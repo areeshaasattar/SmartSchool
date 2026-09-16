@@ -40,6 +40,10 @@ export interface IUser extends Document {
   profile: IUserProfile
   status: UserStatus
   lastLogin?: Date
+  /** Bumped on password change — access tokens carry the value at issue time. */
+  tokenVersion: number
+  /** Set on password change — access tokens older than this are rejected. */
+  passwordChangedAt?: Date
   emailVerificationToken?: string
   emailVerificationExpires?: Date
   passwordResetToken?: string
@@ -94,6 +98,13 @@ const userSchema = new Schema<IUser>(
       default: 'pending_verification',
     },
     lastLogin: {
+      type: Date,
+    },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+    passwordChangedAt: {
       type: Date,
     },
     emailVerificationToken: {

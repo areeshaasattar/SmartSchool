@@ -2,6 +2,9 @@ import { Request, Response, Router } from 'express'
 import { authenticate } from '../../../middlewares/auth/authenticate.js'
 import { resolveTenant } from '../../../middlewares/tenant/resolveTenant.js'
 import { requireRole } from '../../../middlewares/permissions/requireRole.js'
+import { aiUserRateLimit } from '../../../middlewares/validation/rateLimit.js'
+import { validate } from '../../../middlewares/validation/validate.js'
+import { aiQuerySchema } from '../schemas/aiSchemas.js'
 import { AIServiceClientError, processAIRequest } from '../services/aiServiceClient.js'
 import { Guardian } from '../../students/models/Guardian.js'
 import { AIQueryLog } from '../models/AIQueryLog.js'
@@ -10,17 +13,14 @@ import * as knowledgeService from '../knowledge/services/knowledgeService.js'
 
 const router = Router()
 
-router.post('/query', authenticate, resolveTenant, async (req: Request, res: Response) => {
+// AI endpoints are abuse-prone (LLM cost) — per-user Redis rate limit.
+router.post('/query', authenticate, resolveTenant, aiUserRateLimit, validate(aiQuerySchema), async (req: Request, res: Response) => {
   if (!req.tenantId) {
     res.status(400).json({ error: 'A school tenant is required for AI requests' })
     return
   }
 
-  const { requestType, payload = {} } = req.body as { requestType?: unknown; payload?: unknown }
-  if (typeof requestType !== 'string' || !requestType.trim() || !payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    res.status(400).json({ error: 'requestType and payload object are required' })
-    return
-  }
+  const { requestType, payload } = req.body as { requestType: string; payload: Record<string, unknown> }
 
   let authorizedContext: Record<string, unknown>
   if (requestType === 'school_policy_query') {
@@ -70,7 +70,7 @@ router.post('/knowledge', authenticate, resolveTenant, requireRole('school_admin
     res.status(400).json({ error: 'A school tenant is required for knowledge documents' })
     return
   }
-  const { sourceType, title, content, ownerId } = req.body as Record<string, unknown>
+  const { sourceType, title, content, ownerId } = req.body as Record<string, string | undefined>
   if (typeof sourceType !== 'string' || !KNOWLEDGE_SOURCE_TYPES.includes(sourceType as KnowledgeSourceType) || typeof title !== 'string' || !title.trim() || typeof content !== 'string' || !content.trim()) {
     res.status(400).json({ error: 'sourceType, title, and non-empty content are required' })
     return

@@ -105,7 +105,7 @@ describe('Document Service', () => {
         userId1,
         ['teacher'],
         {
-          buffer: Buffer.from('test'),
+          buffer: Buffer.from('%PDF-1.4\ntest content'),
           originalname: 'test.pdf',
           mimetype: 'application/pdf',
           size: 1024,

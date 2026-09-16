@@ -1,62 +1,31 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import mongoose from 'mongoose'
 import { createServer } from 'http'
+import dns from 'node:dns'
+// Importing env/app triggers envalid validation before any network I/O.
+import { createApp } from './app.js'
+import { env } from './shared/config/env.js'
 import { connectDatabase } from './config/database.js'
 import { getRedisClient } from './shared/redis.js'
 import { initSocket } from './shared/socket.js'
-import routes from './routes/index.js'
-import dns from 'node:dns'
+import { migrateLegacySessions } from './modules/auth/services/authService.js'
 
-dotenv.config()
 dns.setServers(['8.8.8.8', '8.8.4.4'])
 
-const app = express()
-const PORT = process.env.PORT || 5000
-
-// Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}))
-app.use(express.json())
-
-// Health check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' })
-})
-
-// API routes
-app.use('/api', routes)
-
-// Error handling middleware
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  if (err instanceof mongoose.Error.ValidationError) {
-    const details = Object.fromEntries(
-      Object.entries(err.errors).map(([field, validationError]) => [field, validationError.message]),
-    )
-
-    res.status(400).json({
-      error: 'Validation failed',
-      details,
-    })
-    return
-  }
-
-  console.error('Unhandled error:', err)
-  res.status(500).json({ error: 'Internal server error' })
-})
+const app = createApp()
+const PORT = env.PORT
 
 // Start server
 async function start() {
   try {
-    // Connect to MongoDB
-    const mongoUri = process.env.MONGO_URI || 'mongodb://root:rootpassword@localhost:27017/smartschool?authSource=admin'
-    await connectDatabase(mongoUri)
-
-    // Connect to Redis
+    await connectDatabase(env.MONGO_URI)
     getRedisClient()
+
+    // One-time re-hash of pre-hardening plaintext refresh tokens (idempotent).
+    try {
+      const { migrated } = await migrateLegacySessions()
+      if (migrated > 0) console.log(`Re-hashed ${migrated} legacy session token(s)`)
+    } catch (error) {
+      console.error('Legacy session migration failed (continuing):', error)
+    }
 
     const httpServer = createServer(app)
     initSocket(httpServer)
@@ -69,6 +38,7 @@ async function start() {
   }
 }
 
-start()
+void start()
 
 export default app
+

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { authenticate } from '../../../middlewares/auth/authenticate.js'
 import { validate } from '../../../middlewares/validation/validate.js'
 import { authRateLimit, passwordResetRateLimit } from '../../../middlewares/validation/rateLimit.js'
+import { loginLockout } from '../../../middlewares/auth/loginLockout.js'
 import {
   registerSchema,
   loginSchema,
@@ -10,6 +11,7 @@ import {
   resendVerificationSchema,
   passwordResetRequestSchema,
   passwordResetConfirmSchema,
+  logoutSchema,
 } from '../schemas/authSchemas.js'
 import * as authService from '../services/authService.js'
 
@@ -58,6 +60,7 @@ router.post(
 router.post(
   '/login',
   authRateLimit,
+  loginLockout,
   validate(loginSchema),
   async (req: Request, res: Response) => {
     try {
@@ -122,7 +125,7 @@ router.post('/refresh', validate(refreshSchema), async (req: Request, res: Respo
 })
 
 // POST /auth/logout
-router.post('/logout', async (req: Request, res: Response) => {
+router.post('/logout', validate(logoutSchema), async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body
     if (refreshToken) {

@@ -258,7 +258,7 @@ describe('Auth Endpoints', () => {
 
       const res = await request(app)
         .post('/api/auth/logout')
-        .send({ refreshToken: 'some-token' })
+        .send({ refreshToken: '11111111-2222-4333-8444-555555555555' })
 
       expect(res.status).toBe(200)
     })

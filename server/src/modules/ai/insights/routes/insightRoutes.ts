@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import { authenticate } from '../../../../middlewares/auth/authenticate.js'
 import { resolveTenant } from '../../../../middlewares/tenant/resolveTenant.js'
 import { requireRole } from '../../../../middlewares/permissions/requireRole.js'
+import { aiUserRateLimit } from '../../../../middlewares/validation/rateLimit.js'
 import { Teacher } from '../../../teachers/models/Teacher.js'
 import * as insightService from '../services/insightService.js'
 import { InsightError, INSIGHT_TYPES } from '../services/insightService.js'
@@ -59,7 +60,7 @@ function sendInsightError(res: Response, error: unknown): void {
 }
 
 // ── POST /ai/insights/academic ──────────────────────────────────────
-router.post('/insights/academic', requireRole('teacher', 'principal', 'school_admin'), async (req: Request, res: Response) => {
+router.post('/insights/academic', requireRole('teacher', 'principal', 'school_admin'), aiUserRateLimit, async (req: Request, res: Response) => {
   const schoolId = requireTenantId(req, res)
   if (!schoolId) return
 
@@ -79,7 +80,7 @@ router.post('/insights/academic', requireRole('teacher', 'principal', 'school_ad
 })
 
 // ── POST /ai/insights/attendance ────────────────────────────────────
-router.post('/insights/attendance', requireRole('teacher', 'principal', 'school_admin'), async (req: Request, res: Response) => {
+router.post('/insights/attendance', requireRole('teacher', 'principal', 'school_admin'), aiUserRateLimit, async (req: Request, res: Response) => {
   const schoolId = requireTenantId(req, res)
   if (!schoolId) return
 
@@ -102,6 +103,7 @@ router.post('/insights/attendance', requireRole('teacher', 'principal', 'school_
 router.post(
   '/insights/principal-briefing',
   requireRole('principal', 'school_admin', 'super_admin'),
+  aiUserRateLimit,
   async (req: Request, res: Response) => {
     const schoolId = requireTenantId(req, res)
     if (!schoolId) return
