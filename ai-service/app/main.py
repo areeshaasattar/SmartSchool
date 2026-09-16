@@ -3,12 +3,14 @@ from dotenv import load_dotenv
 
 from app.api.ai import router as ai_router
 from app.api.indexing import router as indexing_router
+from app.api.insights import router as insights_router
 
 load_dotenv()
 
 app = FastAPI(title="SmartSchool AI Service")
 app.include_router(ai_router)
 app.include_router(indexing_router)
+app.include_router(insights_router)
 
 
 @app.get("/health")

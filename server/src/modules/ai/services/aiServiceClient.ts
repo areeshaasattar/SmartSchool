@@ -32,6 +32,29 @@ export async function deindexKnowledgeDocument(documentId: string, schoolId: str
   await callAIService('/ai/deindex', { documentId, schoolId })
 }
 
+export interface InsightSummaryRequest {
+  /** academic | attendance | briefing */
+  insightType: string
+  /** Anonymized aggregate — never raw student documents. */
+  aggregateData: Record<string, unknown>
+  schoolContext: Record<string, unknown>
+}
+
+export interface InsightSummaryResponse {
+  insightType: string
+  result: {
+    narrative: string
+    keyPoints: string[]
+    caveats: string[]
+    message?: string
+  }
+  status: 'ok' | 'error'
+}
+
+export async function summarizeInsight(request: InsightSummaryRequest): Promise<InsightSummaryResponse> {
+  return callAIService<InsightSummaryResponse>('/insights/summarize', request)
+}
+
 async function callAIService<T>(path: string, body: unknown): Promise<T> {
   const serviceUrl = process.env.AI_SERVICE_URL
   const serviceKey = process.env.AI_SERVICE_KEY

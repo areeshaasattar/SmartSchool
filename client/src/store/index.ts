@@ -2,6 +2,8 @@ import { configureStore, createSlice, type PayloadAction } from '@reduxjs/toolki
 import { setAccessToken, setActiveSchoolId } from '../services/api'
 import { auditApi } from '../features/audit/services/auditApi'
 import { teacherToolsApi } from '../features/ai/teacher-tools/api/teacherToolsApi'
+import { insightsApi } from '../features/ai/insights/api/insightsApi'
+import insightsReducer from '../features/ai/insights/insightsSlice'
 
 export interface UserProfile {
   firstName: string
@@ -130,10 +132,12 @@ export const store = configureStore({
     auth: authSlice.reducer,
     tenant: tenantSlice.reducer,
     parentPortal: parentPortalSlice.reducer,
+    insights: insightsReducer,
     [auditApi.reducerPath]: auditApi.reducer,
     [teacherToolsApi.reducerPath]: teacherToolsApi.reducer,
+    [insightsApi.reducerPath]: insightsApi.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(auditApi.middleware, teacherToolsApi.middleware),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(auditApi.middleware, teacherToolsApi.middleware, insightsApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>
